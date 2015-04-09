@@ -1,0 +1,14 @@
+#Latex
+*.aux
+*.bbl
+*.blg
+*.dvi
+*.log
+*.out
+
+#Vim
+*~
+*.swp
+
+#Python	
+*.pyc
