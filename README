@@ -1,0 +1,60 @@
+vis_sample - Python Package for visibility sampling
+====================================================
+
+  Purpose:
+    vis_sample allows you to sample visibilities from a user-supplied sky-brightness image.
+
+    (u,v) grid points can either be supplied by the user, or can be retrieved from a template uvfits file.
+
+    The results can be output either to a uvfits file, hdf5 file, or returned back to the user (for scripting)
+
+
+  Input parameters:
+    imagefile - the input sky brightness
+
+    for uv points use:
+        uvfile - uvfits file with visibilities that the sky brightness will be interpolated to
+      OR        
+        uu, vv - numpy arrays
+
+  Output parameters:
+    writefile - do you want to ouput visibilities to a file?
+
+    outfile - name of output file - {name}.uvfits -> uvfits file, {name}.hdf5 -> hdf5 file
+
+    verbose - display all progress output, default = True
+
+    return_cache - NOT FULLY IMPLEMENTED YET, will eventually return the gcf cache to allow faster interpolation for many models   
+
+
+  Usage::
+
+    >> from vis_sample import vis_sample                                                                            # import the vis_sample command  
+    >> vis_sample(filename="my_model.fits", uvfile="data.uvfits", writefile=True, outfile='interp.uvfits')          # sample my_model using data (u,v) points and output to interp
+    >> interp_vis = vis_sample(filename="my_model.fits", uvfile="data.uvfits")                                      # sample my_model using data (u,v) points, interp_vis stores visibilities
+
+    In the second usage, interp_vis is the "raw" output visibility, ie just a numpy array of size [n_visibilities, n_chans]
+
+=================================
+
+
+
+Source Structure
+------------
+
+Contents::  
+
+    vis_sampler
+    |-- vis_sample
+    |   |-- classes.py                                   : Contains class information for visibilities and sky brightness images 
+    |   |-- constants.py                                 : Physical and numerical constants 
+    |   |-- file_handling.py                             : File I/O 
+    |   |-- gridding.py                                  : Functions for the gcf and correction function  
+    |   |-- interpolation.py                             : Functions for interpolating visibilities
+    |   |-- transforms.py                                : FFTs for sky brightness -> visibility
+    |   |-- vis_sampler.py                               : Wraps everything together into vis_sample() function
+    |   | 
+    |   |-- __init__.py
+    |
+    |-- README
+
