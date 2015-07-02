@@ -20,7 +20,7 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, writefile=False, outfile="", ver
 
 # Either we read in uu and vv coordinates
     if (uvfile == 0):
-        if (uu == 0) or (vv == 0):
+        if (np.size(uu) == 0) or (np.size(vv) == 0):
             print "Please supply either a uvfits file to interpolate onto (uvfile) or a list of uv points (uu & vv)"
         else:
             mod_sky_img = import_model(imagefile)
