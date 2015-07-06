@@ -18,9 +18,9 @@ from numpy.lib.stride_tricks import as_strided
 
 def calc_dense_grid_gcf():
     dense_grid = np.linspace(-0.5, 0.5, 1000)
-    dense_grid_gcf = np.zeros((1000,7))
+    dense_grid_gcf = np.zeros((1000,6))
     for i, grid_pnt in enumerate(dense_grid):
-        eta = (np.arange(-3,4) + grid_pnt)/3.5
+        eta = (np.arange(-3,3) + grid_pnt)/3.0
         dense_grid_gcf[i] = gcffun(eta)
     return dense_grid_gcf
 
@@ -41,9 +41,9 @@ def create_gcf_holder(uu, vv, vis):
     # 1. Find the nearest pixel points in the fft'd image, and push to the index array
     du = vis.uu[1] - vis.uu[0]
     dv = vis.vv[1] - vis.vv[0]
-    iu0 = viscnt/2+(uu/du+0.5).astype(int)
-    iv0 = viscnt/2+(vv/dv+0.5).astype(int)
-    index_arr = np.reshape(np.array((iu0, iv0)),(nvis,2))
+    iu0 = viscnt/2+np.round((uu/du)).astype(int)
+    iv0 = viscnt/2+np.round((vv/dv)).astype(int)
+    index_arr = np.transpose(np.array((iu0, iv0)))
 
     # 2. Find the relative distance to this point (should be -0.5 du/v < val < 0.5 du/v) 
     u0 = uu - vis.uu[iu0]
@@ -85,15 +85,15 @@ def interpolate_uv(uu, vv, vis, gcf_holder='', return_gcf=False):
     interp_vis = np.zeros((nvis, vis.lams.shape[0]), dtype='complex')
     
     # read out the pixel indices for windowing
-    u0 = gcf_holder.index_arr[:, 0].astype(int)-4
-    v0 = gcf_holder.index_arr[:, 1].astype(int)-4
+    u0 = gcf_holder.index_arr[:, 0].astype(int)-3
+    v0 = gcf_holder.index_arr[:, 1].astype(int)-3
 
     # iterate through the channels and multiply weights by the windowed pixels
     # note that we could theoretically vectorize by channel as well, but this
     # produces a memory error - maybe the array is too large?
     for l in range(vis.lams.shape[0]):
         VV_chan = vis.VV[:,:,l]
-        VV = as_strided(VV_chan, shape=(VV_chan.shape[0]-5, VV_chan.shape[1]-5, 7, 7), strides=VV_chan.strides * 2)
+        VV = as_strided(VV_chan, shape=(VV_chan.shape[0]-5, VV_chan.shape[1]-5, 6, 6), strides=VV_chan.strides * 2)
         interp_vis[:,l] = np.einsum("...ab->...", gcf_holder.gcf_arr*VV[v0,u0])/gcf_holder.w_arr
 
     if (return_gcf==True):
