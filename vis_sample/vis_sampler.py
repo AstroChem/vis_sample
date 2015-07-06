@@ -4,6 +4,7 @@ from classes import *
 from transforms import *
 from interpolation import interpolate_uv
 from file_handling import *
+import time
 
 def vis_sample(imagefile, uvfile=0, uu=0, vv=0, writefile=False, outfile="", verbose=True, return_cache=False):
 
@@ -18,6 +19,8 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, writefile=False, outfile="", ver
         return ""
 
 
+
+
 # Either we read in uu and vv coordinates
     if (uvfile == 0):
         if (np.size(uu) == 0) or (np.size(vv) == 0):
@@ -26,21 +29,32 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, writefile=False, outfile="", ver
             mod_sky_img = import_model(imagefile)
             if (verbose==True): print "Read model file to be interpolated: "+imagefile
 
-            alpha = 1.0
-            if (verbose==True): print "Applying corrfun, alpha = "+str(alpha)
-            apply_corrfun(mod_sky_img, alpha, 0.0, 0.0)
+            if (verbose==True): print "Applying corrfun"
+            t0 = time.time()
+            apply_corrfun(mod_sky_img, 0.0, 0.0)
+            t1 = time.time()
+            print "corr_fun apply time = " + str(t1-t0)
+
 
             if (verbose==True): print "Starting FFT"
+            t0 = time.time()
             mod_fft = transform(mod_sky_img)
+            t1 = time.time()
+            print "fft time = " + str(t1-t0)
 
             if (verbose==True): print "FFT complete, starting interpolation"
+            t0 = time.time()
             interp = interpolate_uv(uu, vv, mod_fft)
+            t1 = time.time()
+            print "interpolation time = " + str(t1-t0)
             if (verbose==True): print "Interpolation complete, returning the interpolated visibilities"
 
             if (writefile==True):
                 print "Cannot write file without an input uvfits file (uvfile)"
 
             return interp
+
+
 
 
 # or we get them from a uvfits file
@@ -51,15 +65,24 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, writefile=False, outfile="", ver
         data_vis, data_hd = import_data(uvfile)
         if (verbose==True): print "Read data file to interpolate onto: "+uvfile
 
-        alpha = 1.0
-        if (verbose==True): print "Applying corrfun, alpha = "+str(alpha)
-        apply_corrfun(mod_sky_img, alpha, 0.0, 0.0)
+        if (verbose==True): print "Applying corrfun"
+        t0 = time.time()
+        apply_corrfun(mod_sky_img, 0.0, 0.0)
+        t1 = time.time()
+        print "corr_fun apply time = " + str(t1-t0)
 
         if (verbose==True): print "Starting FFT"
+        t0 = time.time()
         mod_fft = transform(mod_sky_img)
+        t1 = time.time()
+        print "fft time = " + str(t1-t0)
 
         if (verbose==True): print "FFT complete, starting interpolation"
+        t0 = time.time()
         interp = interpolate_uv(data_vis.uu, data_vis.vv, mod_fft)
+        t1 = time.time()
+        print "interpolation time = " + str(t1-t0)
+
         if (verbose==True): print "Interpolation complete"
 
         if (writefile):
