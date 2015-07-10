@@ -98,10 +98,7 @@ def create_gcf_holder(uu, vv, vis):
 def interpolate_uv(uu, vv, vis, gcf_holder=0, return_gcf=False):
     # create gcf_holder if one isn't provided
     if (gcf_holder==0):
-        t0 = time.time()
         gcf_holder = create_gcf_holder(uu, vv, vis)
-        t1 = time.time()
-        print "gcf creation time = " + str(t1-t0)
 
     # create the new interpolated visibility holder
     nvis = vv.shape[0]
