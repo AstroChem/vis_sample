@@ -2,10 +2,9 @@ import numpy as np
 import astropy.io.fits as pyfits
 from constants import *
 from transforms import *
-import h5py
 
 # imports data from uvfits file and exports a data visibility
-def import_data(filename):
+def import_data_uvfits(filename):
     dat = pyfits.open(filename)
     data = dat[0].data
     dhd = dat[0].header
@@ -47,8 +46,9 @@ def import_model(filename):
     mid_chan_vel = mhd['CRPIX3']
     delt_vel = mhd['CDELT3']
 
-    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*delt_ra
-    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*delt_dec
+    # the assumption is that the RA and DEC are given in degrees, convert to arcsec 
+    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*delt_ra*3600
+    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*delt_dec*3600
     mod_vels = (np.arange(nchan_vel)-(mid_chan_vel-1))*delt_vel
 
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
@@ -71,15 +71,3 @@ def export_uvfits_from_clone(vis, outfile, uvfits_clone):
 
     clone.writeto(outfile)
     print "Wrote " + outfile
-
-def export_hdf5(vis, outfile):
-    fid = h5py.File(outfile, "w")
-    fid["lams"] = vis.lams
-    fid["uu"] = vis.uu
-    fid["vv"] = vis.vv
-    fid["real"] = np.real(vis.VV)
-    fid["imag"] = np.imag(vis.VV)
-    fid["wgts"] = vis.wgts
-    fid.close()
-    print "Wrote " + outfile
-
