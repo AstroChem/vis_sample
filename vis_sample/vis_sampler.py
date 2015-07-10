@@ -63,7 +63,7 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writ
     corr_cache = apply_corrfun(mod_sky_img, 0.0, 0.0, corr_cache=corr_cache, return_cache=return_corr_cache)
 
     t1 = time.time()
-    print "corr_fun apply time = " + str(t1-t0)
+    if (verbose==True): print "corr_fun apply time = " + str(t1-t0)
 
 
 
@@ -78,7 +78,7 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writ
     mod_fft = transform(mod_sky_img)
 
     t1 = time.time()
-    print "fft time = " + str(t1-t0)
+    if (verbose==True): print "fft time = " + str(t1-t0)
     if (verbose==True): print "FFT complete, starting interpolation"
 
 
@@ -100,7 +100,7 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writ
         interp, gcf_holder = interpolate_uv(uu, vv, mod_fft, return_gcf=return_gcf)
 
     t1 = time.time()
-    print "interpolation time = " + str(t1-t0)
+    if (verbose==True): print "interpolation time = " + str(t1-t0)
     if (verbose==True): print "Interpolation complete"
 
 
