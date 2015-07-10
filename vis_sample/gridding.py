@@ -1,9 +1,7 @@
 # Here we calculate the gridding convolution function (gcf) and the correct function (corrfun)
-# for a given distance in grid space (eta). We interpolate over the nearest 7 pixels.
+# for a given distance in grid space (eta). We interpolate over the nearest 5 pixels.
 # The gcf is used for the interpolation later, and the corrfun is applied to the image prior
 # to the FFT to correct for the future convolution of the gcf (ie corrfun is the FT'd inverse)
-
-# TODO: correct etalim for using 7 pixels rather than 6
 
 import numpy as np
 from scipy import weave
@@ -13,51 +11,29 @@ import time
 
 
 # First we definte the prolate spheroidal functions used for calculating the gcf and corrfun.
-# This funtion definition comes from Schwabb's derivations
+# This funtion definition comes from Schwab's derivations
 
 def spheroid_weave(eta=0):
-    etalim = 0.75
-    eta = abs(eta)
+    nn = eta**2 - 1**2
 
-    if eta <= etalim:
-        nn = eta**2 - etalim**2
-        return spheroid_weave_1(nn)
-    elif eta <= 1.00000000001:
-        nn = eta**2 - 1.0
-        return spheroid_weave_2(nn)
-
-    return 1e30
-
-
-def spheroid_weave_1(nn):
-    support = """
-        #include <math.h>
-        #include <stdlib.h>
+    if np.abs(eta) < 1.0000000000001:
+        support = """
+            #include <math.h>
+            #include <stdlib.h>
+            """
+        code = """
+            double n = (double) nn;
+            return_val = (0.01624782*pow(n,6) + -0.05350728*pow(n,5) + 0.1464354*pow(n,4) + -0.2347118*pow(n,3) + 0.2180684*pow(n,2) + -0.09858686*n + 0.01466325)/(0.2177793*n + 1);
         """
-    code = """
-        double n = (double) nn;
-        return_val = (pow(0.2312756*n,4) + pow(-0.5335581*n,3) + pow(0.627866*n,2) + -0.3644705*n + 0.08203343)/(pow(0.2078043*n,2) + 0.8212018*n + 1.0);
-    """
-    return weave.inline(code, arg_names=['nn'], support_code = support, libraries = ['m'], type_converters=converters.blitz)
+        return weave.inline(code, arg_names=['nn'], support_code = support, libraries = ['m'], type_converters=converters.blitz)
 
-
-def spheroid_weave_2(nn):
-    support = """
-        #include <math.h>
-        #include <stdlib.h>
-        """
-    code = """
-        double n = (double) nn;
-        return_val = (pow(0.06412774*n,4) + pow(-0.1201436*n,3) + pow(0.1021332*n,2) + -0.03697768*n + 0.004028559)/(pow(0.2918724*n,2) + 0.9599102*n + 1.0);
-    """
-    return weave.inline(code, arg_names=['nn'], support_code = support, libraries = ['m'], type_converters=converters.blitz)
-
-
+    else:
+        return 1e30
 
 
 # now we define the functions that will calculate the gcf
 def gcf_single(eta):
-    return ((abs(1 - eta**2)))*spheroid_weave(eta)
+    return (abs(1 - eta**2))*spheroid_weave(eta)
 
 def gcffun(etas):
     return [gcf_single(eta) for eta in etas]
@@ -71,33 +47,37 @@ def gcffun(etas):
 # Caching the corrfun values results in a ~40% speed increase for future model corrections
 # corr_cache can be returned through the return_cache flag, then fed back in later
 
-def apply_corrfun(img, mu_ra, mu_dec, corr_cache="", return_cache=False):
+def apply_corrfun(img, mu_ra, mu_dec, corr_cache=0, return_cache=False):
     ndec, nra, nvel = img.data.shape
-    if (corr_cache==""):
-        del_ra = abs(img.ra[1] - img.ra[0])
-        del_dec = abs(img.dec[1] - img.dec[0])
-        maxra = del_ra * nra/2
-        maxdec = del_dec * ndec/2
 
+    if (corr_cache==0):
         # If the image will be later offset via a phase shift, then this means that
         # the corrfun will need to be applied *as if the image were already offset*
         corr_cache = np.zeros([ndec, nra])
-        eta_x = (img.ra + mu_ra)/maxra
-        # not sure why -del_dec was applied here before - has to do with pixel shift I think
-        eta_y = (img.dec -del_dec + mu_dec)/maxdec
+
+        eta_x = np.array([0])
+        eta_y = np.array([0])
+
+        if nra > 1:
+            del_ra = abs(img.ra[1] - img.ra[0])
+            maxra = del_ra * nra/2
+            eta_x = (img.ra + mu_ra)/maxra
+
+        if ndec > 1:
+            del_dec = abs(img.dec[1] - img.dec[0])
+            maxdec = del_dec * ndec/2
+            eta_y = (img.dec + mu_dec)/maxdec
 
         spheroid_vectorized = np.vectorize(spheroid_weave)
         corr_x = 1.0/spheroid_vectorized(eta_x)
         corr_y = 1.0/spheroid_vectorized(eta_y)
 
-        corr_cache = np.outer(corr_x, corr_y)
-
+        corr_cache = np.outer(corr_y, corr_x)
 
     for k in range(nvel):
         img.data[:,:,k] = img.data[:,:,k]*corr_cache
 
-    if (return_cache==True):
-        return corr_cache
+    return corr_cache
 
 
 
