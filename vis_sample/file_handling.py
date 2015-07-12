@@ -165,7 +165,7 @@ def export_ms_from_clone(vis, outfile, ms_clone):
     data_array[1,:,:] = VV_t
 
     tb.putcol("DATA", data_array)
-    tb.putcol("WEIGHT", np.array((np.sum(vis.wgts, axis=1),np.sum(vis.wgts, axis=1))))
+    tb.putcol("WEIGHT", np.array((np.mean(vis.wgts, axis=1),np.mean(vis.wgts, axis=1))))
     tb.flush()
     tb.close()
 
