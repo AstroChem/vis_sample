@@ -10,9 +10,13 @@ import time
 # currently the imagefile needs to be formatted with units of DEG in RA and DEC
 # units for uu and vv are LAMBDA (ie number of wavelengths)
 
-def vis_sample(imagefile, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
+def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
 
     # Error cases #
+    if imagefile==0:
+        print "Please supply an input imagefile to FFT and sample"
+        return ""
+
     if (writefile==True and outfile==""):
         print "Please supply an output file name (outfile) if writing to a file"
         return ""
@@ -39,7 +43,11 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writ
     # if we don't have uu and vv specified, then read them in from the data file
     if (uvfile != 0):
         if "fits" in uvfile:
-            data_vis, data_hd = import_data_uvfits(uvfile)
+            data_vis = import_data_uvfits(uvfile)
+        elif "ms" in uvfile:
+            data_vis = import_data_ms(uvfile)
+        else:
+            print "not a valid data file to interpolate onto"
         if (verbose==True): print "Read data file to interpolate onto: "+uvfile
 
     # or read from the cache being fed in
@@ -94,7 +102,7 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writ
         interp, gcf_holder = interpolate_uv(data_vis.uu, data_vis.vv, mod_fft, return_gcf=return_gcf)
 
     elif (gcf_holder != 0):
-        interp = interpolate_uv(gcf_holder.uu, gcf_holder.vv, mod_fft, gcf_holder=gcf_holder)
+        interp, dummy = interpolate_uv(gcf_holder.uu, gcf_holder.vv, mod_fft, gcf_holder=gcf_holder)
 
     else:
         interp, gcf_holder = interpolate_uv(uu, vv, mod_fft, return_gcf=return_gcf)
@@ -114,6 +122,8 @@ def vis_sample(imagefile, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writ
         interp_vis = Visibility(interp, data_vis.uu, data_vis.vv, np.ones(interp.shape), data_vis.freqs)
         if "fits" in outfile:
             export_uvfits_from_clone(interp_vis, outfile, uvfile)
+        if "ms" in outfile:
+            export_ms_from_clone(interp_vis, outfile, uvfile)
 
         # and we're done!
         return ""
