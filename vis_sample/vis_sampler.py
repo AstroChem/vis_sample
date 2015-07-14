@@ -10,7 +10,7 @@ import time
 # currently the imagefile needs to be formatted with units of DEG in RA and DEC
 # units for uu and vv are LAMBDA (ie number of wavelengths)
 
-def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
+def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, src_distance = None, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
 
     # Error cases #
     if imagefile==0:
@@ -61,7 +61,14 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, wr
     ####################################################
 
     # now that we have either a data_vis or a list of uu,vv points, let's import the model file
-    mod_sky_img = import_model(imagefile)
+    if "fits" in imagefile:
+        mod_sky_img = import_model_fits(imagefile)
+    elif "image.out" in imagefile:
+        if src_distance is None:
+             print "A source distance in pc needs to be provided in order to process a RADMC3D image file"
+             return ""
+        else: mod_sky_img = import_model_radmc(src_distance, imagefile)
+
     if (verbose==True): print "Read model file to be interpolated: "+imagefile
 
     # now apply the correction function
