@@ -105,18 +105,22 @@ def import_model(filename):
     npix_ra = mhd['NAXIS1']
     mid_pix_ra = mhd['CRPIX1']
     delt_ra = mhd['CDELT1']
+    if delt_ra < 0:
+        mod_data = np.fliplr(mod_data)
 
     npix_dec = mhd['NAXIS2']
     mid_pix_dec = mhd['CRPIX2']
     delt_dec = mhd['CDELT2']
+    if delt_dec < 0:
+        mod_data = np.flipud(mod_data)
 
     nchan_vel = mhd['NAXIS3']
     mid_chan_vel = mhd['CRPIX3']
     delt_vel = mhd['CDELT3']
 
     # the assumption is that the RA and DEC are given in degrees, convert to arcsec 
-    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*delt_ra*3600
-    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*delt_dec*3600
+    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*abs(delt_ra)*3600
+    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*abs(delt_dec)*3600
     mod_vels = (np.arange(nchan_vel)-(mid_chan_vel-1))*delt_vel
 
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
@@ -155,17 +159,33 @@ def export_ms_from_clone(vis, outfile, ms_clone):
     shutil.copytree(ms_clone, outfile)
 
     tb = casac.casac.table()
-
-    VV_t = np.transpose(vis.VV)
     
     # Use CASA table tools to fill new DATA and WEIGHT
     tb.open(outfile, nomodify=False)
-    data_array = np.zeros((2,VV_t.shape[0], VV_t.shape[1])).astype(complex)
-    data_array[0,:,:] = VV_t
-    data_array[1,:,:] = VV_t
+
+    # we need to pull the antennas and find where the autocorrelation values aren and aren't
+    ant1    = tb.getcol("ANTENNA1")
+    ant2    = tb.getcol("ANTENNA2")
+    ac = np.where(ant1 == ant2)[0]
+    xc = np.where(ant1 != ant2)[0]
+
+    data_array = np.zeros((2, vis.VV.shape[1], ant1.shape[0])).astype(complex)
+
+    # fill the xc with our interpolation
+    data_array[0, :, xc] = vis.VV
+    data_array[1, :, xc] = vis.VV
+
+    # fill the ac with 0's
+    data_array[0, :, ac] = 0 + 0j
+    data_array[1, :, ac] = 0 + 0j
+
+    # now do the same with the weights
+    weights = np.zeros((2, ant1.shape[0]))
+    weights[0, xc] = np.mean(vis.wgts, axis=1)
+    weights[1, xc] = np.mean(vis.wgts, axis=1)
 
     tb.putcol("DATA", data_array)
-    tb.putcol("WEIGHT", np.array((np.mean(vis.wgts, axis=1),np.mean(vis.wgts, axis=1))))
+    tb.putcol("WEIGHT", weights)
     tb.flush()
     tb.close()
 
