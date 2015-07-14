@@ -28,7 +28,7 @@ def import_data_uvfits(filename):
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[1])*dat[1].data['ch width'][0]/1e6)
+    return Visibility(data_VV, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[0])*dat[1].data['ch width'][0]/1e6)
 
 
 # imports data from a casa measurement set (ms) and exports a data visibility
@@ -93,7 +93,7 @@ def import_data_ms(filename):
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV, data_uu, data_vv, data_wgts, (np.arange(data_VV.shape[1])*chan_width + start_freq)/1e6)
+    return Visibility(data_VV, data_uu, data_vv, data_wgts, (np.arange(data_VV.shape[0])*chan_width + start_freq)/1e6)
 
 
 # imports model from a FITS file - note the assumptions on dimensions
