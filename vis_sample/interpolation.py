@@ -111,6 +111,7 @@ def interpolate_uv(uu, vv, vis, gcf_holder=0, return_gcf=False):
     # iterate through the channels and multiply weights by the windowed pixels
     # note that we could theoretically vectorize by channel as well, but this
     # produces a memory error - maybe the array is too large?
+
     for l in range(vis.freqs.shape[0]):
         VV_chan = vis.VV[:,:,l]
         VV = as_strided(VV_chan, shape=(VV_chan.shape[0]-4, VV_chan.shape[1]-4, 5, 5), strides=VV_chan.strides * 2)
