@@ -59,13 +59,13 @@ def apply_corrfun(img, mu_ra, mu_dec, corr_cache=0, return_cache=False):
         eta_y = np.array([0])
 
         if nra > 1:
-            del_ra = abs(img.ra[1] - img.ra[0])
-            maxra = del_ra * nra/2
+            del_ra = img.ra[1] - img.ra[0]
+            maxra = abs(del_ra) * nra/2
             eta_x = (img.ra + mu_ra)/maxra
 
         if ndec > 1:
-            del_dec = abs(img.dec[1] - img.dec[0])
-            maxdec = del_dec * ndec/2
+            del_dec = img.dec[1] - img.dec[0]
+            maxdec = abs(del_dec) * ndec/2
             eta_y = (img.dec + mu_dec)/maxdec
 
         spheroid_vectorized = np.vectorize(spheroid_weave)
