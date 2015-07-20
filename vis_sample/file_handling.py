@@ -119,8 +119,8 @@ def import_model(filename):
     delt_vel = mhd['CDELT3']
 
     # the assumption is that the RA and DEC are given in degrees, convert to arcsec 
-    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*abs(delt_ra)*3600
-    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*abs(delt_dec)*3600
+    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*delt_ra*3600
+    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*delt_dec*3600
     mod_vels = (np.arange(nchan_vel)-(mid_chan_vel-1))*delt_vel
 
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
