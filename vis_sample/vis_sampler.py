@@ -9,8 +9,9 @@ import time
 
 # currently the imagefile needs to be formatted with units of DEG in RA and DEC
 # units for uu and vv are LAMBDA (ie number of wavelengths)
+# units for mu_RA and mu_DEC are arcsec
 
-def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
+def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
 
     # Error cases #
     if imagefile==0:
@@ -68,7 +69,7 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, wr
     t0 = time.time()
     if (verbose==True): print "Applying corrfun"
 
-    corr_cache = apply_corrfun(mod_sky_img, 0.0, 0.0, corr_cache=corr_cache, return_cache=return_corr_cache)
+    corr_cache = apply_corrfun(mod_sky_img, mu_RA, mu_DEC, corr_cache=corr_cache, return_cache=return_corr_cache)
 
     t1 = time.time()
     if (verbose==True): print "corr_fun apply time = " + str(t1-t0)
@@ -76,9 +77,9 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, wr
 
 
 
-    #####################
-    #   FFT the image   #
-    #####################
+    ####################################
+    #   FFT the image and phase shift  #
+    ####################################
 
     if (verbose==True): print "Starting FFT"
     t0 = time.time()
@@ -87,9 +88,19 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, gcf_holder=0, corr_cache=0, wr
 
     t1 = time.time()
     if (verbose==True): print "fft time = " + str(t1-t0)
-    if (verbose==True): print "FFT complete, starting interpolation"
+    if (verbose==True): print "FFT complete"
 
+    if ((mu_RA != 0) or (mu_DEC != 0)):
+        if (verbose==True): print "Starting phase shift"
+        t0 = time.time()
+        
+        phase_shift(mod_fft, mu_RA, mu_DEC)
+        
+        t1 = time.time()
+        if (verbose==True): print "Phase shift time = " + str(t1-t0)
+        if (verbose==True): print "Phase shift complete"
 
+    if (verbose==True): print "Starting interpolation"
 
 
     ###################################
