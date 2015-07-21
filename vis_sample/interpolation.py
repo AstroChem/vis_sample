@@ -9,7 +9,7 @@ from numpy.lib.stride_tricks import as_strided
 
 
 
-# Calculate the gcf values for 7 fft image points around the dense grid points
+# Calculate the gcf values for 5 fft image points around the dense grid points
 # This is calculated as a 1d problem, calculating u and v weights separately
 # to be multiplied in the future as an outer product.
 #
