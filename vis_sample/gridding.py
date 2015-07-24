@@ -14,6 +14,17 @@ import time
 # This funtion definition comes from Schwab's derivations
 
 def spheroid_weave(eta=0):
+    """
+    Calculate value of spheroidal function used for gridding convolution function at a given value eta
+
+    The rational approximation for this function is presented in F.R. Schwab's "Optimal Gridding of Visibility Data in Radio Interferometry" in Indirect Imaging: Measurement and Processing for Indirect Imaging, 1984
+    m=5, alpha = 1
+
+    Parameter
+    _________
+    eta: float between -1 and 1 
+    
+    """
     nn = eta**2 - 1**2
 
     if np.abs(eta) < 1.0000000000001:
@@ -48,6 +59,7 @@ def gcffun(etas):
 # corr_cache can be returned through the return_cache flag, then fed back in later
 
 def apply_corrfun(img, mu_ra, mu_dec, corr_cache=0, return_cache=False):
+
     ndec, nra, nvel = img.data.shape
 
     if (corr_cache==0):

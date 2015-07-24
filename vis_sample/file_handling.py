@@ -5,8 +5,8 @@ from transforms import *
 import sys
 import shutil
 
-# imports data from uvfits file and exports a data visibility
 def import_data_uvfits(filename):
+    """Imports data from uvfits file and returns Visibility object"""
     dat = pyfits.open(filename)
     data = dat[0].data
     dhd = dat[0].header
@@ -31,10 +31,10 @@ def import_data_uvfits(filename):
     return Visibility(data_VV, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[0])*dat[1].data['ch width'][0]/1e6)
 
 
-# imports data from a casa measurement set (ms) and exports a data visibility
 # CASA interfacing code comes from Peter Williams' casa-python and casa-data package
 # commands for retrieving ms data are from Sean Andrews
 def import_data_ms(filename):
+    """Imports data from a casa measurement set (ms) and returns Visibility object"""
     try:
         import casac
     except:
@@ -98,6 +98,11 @@ def import_data_ms(filename):
 
 # imports model from a FITS file - note the assumptions on dimensions
 def import_model(filename):
+    """Imports model from a FITS file and returns SkyImage object
+
+    Note the assumption that RA and DEC are given in degrees (converted to arcsec when returned in SkyImage object)
+
+    """
     mod = pyfits.open(filename)
     mod_data = np.rollaxis(mod[0].data, 0, 3)
     mhd = mod[0].header
