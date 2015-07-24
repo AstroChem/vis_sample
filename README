@@ -22,6 +22,10 @@ vis_sample - Python Package for visibility sampling
 
     corr_cache - optional parameter to feed in a previously output corr_cache (see below return_corr_cache). 
 
+    mu_RA: offset in right ascension from phase center (arcsec)
+
+    mu_DEC: offset in declination from phase center (arcsec)
+
 
   Output parameters:
     writefile - do you want to ouput visibilities to a file?
