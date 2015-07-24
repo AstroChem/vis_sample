@@ -51,8 +51,6 @@ def apply_corrfun(img, mu_ra, mu_dec, corr_cache=0, return_cache=False):
     ndec, nra, nvel = img.data.shape
 
     if (corr_cache==0):
-        # If the image will be later offset via a phase shift, then this means that
-        # the corrfun will need to be applied *as if the image were already offset*
         corr_cache = np.zeros([ndec, nra])
 
         eta_x = np.array([0])
@@ -61,12 +59,12 @@ def apply_corrfun(img, mu_ra, mu_dec, corr_cache=0, return_cache=False):
         if nra > 1:
             del_ra = img.ra[1] - img.ra[0]
             maxra = abs(del_ra) * nra/2
-            eta_x = (img.ra + mu_ra)/maxra
+            eta_x = (img.ra)/maxra
 
         if ndec > 1:
             del_dec = img.dec[1] - img.dec[0]
             maxdec = abs(del_dec) * ndec/2
-            eta_y = (img.dec + mu_dec)/maxdec
+            eta_y = (img.dec)/maxdec
 
         spheroid_vectorized = np.vectorize(spheroid_weave)
         corr_x = 1.0/spheroid_vectorized(eta_x)

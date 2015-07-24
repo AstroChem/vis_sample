@@ -52,22 +52,14 @@ def transform(img):
 
 
 
-
-
-
 # This function lets us shift visibilities given a new centroid (in arcsec)
-def phase_shift(vis, mu_RA, mu_DEC):
+def phase_shift(vis, uu, vv, mu_RA, mu_DEC):
+    # calculate the phase shift for each visibility
+    shifts = np.exp(-2*pi*1.0j * (vv*(-mu_DEC)*arcsec + uu*(-mu_RA)*arcsec))
+
     # Go through each visibility and apply the phase shift
-    outer_sum = np.add.outer(vis.vv*(-mu_DEC)*arcsec, vis.uu*(-mu_RA)*arcsec)
-    shift = np.exp(-2*pi*1.0j * outer_sum)
+    vis = vis * shifts[:,np.newaxis]
 
-    vis.VV = vis.VV * shift[:,:,np.newaxis]
-
-
-
-
-
-
-
+    return vis
 
 

@@ -77,9 +77,9 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=
 
 
 
-    ####################################
-    #   FFT the image and phase shift  #
-    ####################################
+    #####################
+    #   FFT the image   #
+    #####################
 
     if (verbose==True): print "Starting FFT"
     t0 = time.time()
@@ -90,16 +90,6 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=
     if (verbose==True): print "fft time = " + str(t1-t0)
     if (verbose==True): print "FFT complete"
 
-    if ((mu_RA != 0) or (mu_DEC != 0)):
-        if (verbose==True): print "Starting phase shift"
-        t0 = time.time()
-        
-        phase_shift(mod_fft, mu_RA, mu_DEC)
-        
-        t1 = time.time()
-        if (verbose==True): print "Phase shift time = " + str(t1-t0)
-        if (verbose==True): print "Phase shift complete"
-
     if (verbose==True): print "Starting interpolation"
 
 
@@ -109,18 +99,33 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=
 
     t0 = time.time()
 
-    if (uvfile != 0):
-        interp, gcf_holder = interpolate_uv(data_vis.uu, data_vis.vv, mod_fft, return_gcf=return_gcf)
-
-    elif (gcf_holder != 0):
+    if (gcf_holder != 0):
         interp, dummy = interpolate_uv(gcf_holder.uu, gcf_holder.vv, mod_fft, gcf_holder=gcf_holder)
 
+    elif (uvfile != 0):
+        interp, gcf_holder = interpolate_uv(data_vis.uu, data_vis.vv, mod_fft)
+
     else:
-        interp, gcf_holder = interpolate_uv(uu, vv, mod_fft, return_gcf=return_gcf)
+        interp, gcf_holder = interpolate_uv(uu, vv, mod_fft)
 
     t1 = time.time()
     if (verbose==True): print "interpolation time = " + str(t1-t0)
     if (verbose==True): print "Interpolation complete"
+
+
+    #############################
+    #   Phase shift if needed   #
+    #############################
+
+    if ((mu_RA != 0) or (mu_DEC != 0)):
+        if (verbose==True): print "Starting phase shift"
+        t0 = time.time()
+        
+        interp = phase_shift(interp, gcf_holder.uu, gcf_holder.vv, mu_RA, mu_DEC)
+        
+        t1 = time.time()
+        if (verbose==True): print "Phase shift time = " + str(t1-t0)
+        if (verbose==True): print "Phase shift complete"
 
 
     ########################

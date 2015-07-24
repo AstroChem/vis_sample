@@ -9,7 +9,7 @@ from numpy.lib.stride_tricks import as_strided
 
 
 
-# Calculate the gcf values for 7 fft image points around the dense grid points
+# Calculate the gcf values for 5 fft image points around the dense grid points
 # This is calculated as a 1d problem, calculating u and v weights separately
 # to be multiplied in the future as an outer product.
 #
@@ -36,7 +36,7 @@ def create_gcf_holder(uu, vv, vis):
     nu = uu.shape[0]
     nv = vv.shape[0]
     
-    # recall that in the vis, we are padded by 3 zeros on either side in both u and v
+    # recall that in the vis, we are padded by 2 zeros on either side in both u and v
     npix_u = vis.uu.shape[0]
     npix_v = vis.vv.shape[0]
     dense_grid_gcf = calc_dense_grid_gcf()
@@ -70,7 +70,7 @@ def create_gcf_holder(uu, vv, vis):
     if npix_v > 5:
         iv0_grid = 500-(1001*v0/dv).astype(int)
 
-    # 4. Pull the gcf vals for the nearest 7 pixels around this dense grid point
+    # 4. Pull the gcf vals for the nearest 5 pixels around this dense grid point
     uw = dense_grid_gcf[iu0_grid,:]
     vw = dense_grid_gcf[iv0_grid,:]
 
@@ -95,7 +95,7 @@ def create_gcf_holder(uu, vv, vis):
 # If the return_gcf flag is set, it returns the gcf holder (possibly useful for future interpolations 
 # where the gcf calculation represents a significant fraction of the computation time).
 
-def interpolate_uv(uu, vv, vis, gcf_holder=0, return_gcf=False):
+def interpolate_uv(uu, vv, vis, gcf_holder=0):
     # create gcf_holder if one isn't provided
     if (gcf_holder==0):
         gcf_holder = create_gcf_holder(uu, vv, vis)
@@ -117,7 +117,5 @@ def interpolate_uv(uu, vv, vis, gcf_holder=0, return_gcf=False):
         VV = as_strided(VV_chan, shape=(VV_chan.shape[0]-4, VV_chan.shape[1]-4, 5, 5), strides=VV_chan.strides * 2)
         interp_vis[:,l] = np.einsum("...ab->...", gcf_holder.gcf_arr*VV[v0,u0])/gcf_holder.w_arr
 
-    if (return_gcf==True):
-        return interp_vis, gcf_holder
-    else:
-        return interp_vis, 0
+
+    return interp_vis, gcf_holder
