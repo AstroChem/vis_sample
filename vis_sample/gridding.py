@@ -23,6 +23,10 @@ def spheroid_weave(eta=0):
     Parameter
     _________
     eta: float between -1 and 1 
+
+    Returns
+    _______
+    out: float. Value of spheroidal function at eta
     
     """
     nn = eta**2 - 1**2
@@ -59,6 +63,18 @@ def gcffun(etas):
 # corr_cache can be returned through the return_cache flag, then fed back in later
 
 def apply_corrfun(img, corr_cache=0):
+    """Applies correction function to sky brightness image
+
+    Parameters
+    __________
+    img: SkyImage object (required)
+    corr_cache: ndarray (optional) 2D array that is the same shape as img.data (i.e., the number of elements in each dimension is equal to the number of pixels along that dimension in the original image file). Feeding this array in as a parameter avoids having to recalculate the correction function in vis_sample
+
+    Returns
+    _______
+    corr_cache: ndarray. 2D array that is the same shape as img.data (i.e., the number of elements in each dimension is equal to the number of pixels along that dimension in the original image file). Feeding this array in as a parameter avoids having to recalculate the correction function in vis_sample
+    
+    """
 
     ndec, nra, nvel = img.data.shape
 

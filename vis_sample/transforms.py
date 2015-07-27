@@ -6,8 +6,9 @@ from gridding import *
 from classes import *
 
 
-# Transform the SkyImage using FFT and return a Model_Visibility
 def transform(img):
+    """Transform SkyImage object using FFT and return ModelVisibility object"""
+
      # we pad to prevent edge effects during interpolation
     full_fft = np.zeros(((img.data.shape[0]+4),(img.data.shape[1]+4), img.data.shape[2]), dtype='complex')
 
@@ -54,8 +55,21 @@ def transform(img):
 
 
 
-# This function lets us shift visibilities given a new centroid (in arcsec)
 def phase_shift(vis, uu, vv, mu_RA, mu_DEC):
+    """Shift visibilities given an offset from the phase center
+
+    Parameters
+    __________
+    vis: 2D array of visibilities with shape (n visibilities, m channels)
+    uu: 1D array of u coordinates from data
+    vv: 1D array of v coordinates from data
+    mu_RA: Offset of right ascension from phase center (arcsec)
+    mu_DEC: Offset of right ascension from phase center (arcsec)
+
+    Returns
+    _______ 
+    vis: 2D array of phase-shifted visibilities with shape (n visibilities, m channels)
+    """
     # calculate the phase shift for each visibility
     shifts = np.exp(-2*pi*1.0j * (vv*(-mu_DEC)*arcsec + uu*(-mu_RA)*arcsec))
 

@@ -33,6 +33,14 @@ def calc_dense_grid_gcf():
 # and indices to a GCF_holder
 
 def create_gcf_holder(uu, vv, vis):
+    """Return GcfHolder object for a given dataset of (u,v) visibilities
+
+    Parameters
+    __________
+    uu: 1D array of u coordinates from data
+    vv: 1D array of v coordinates from data
+    vis: ModelVisibility object
+    """
     nu = uu.shape[0]
     nv = vv.shape[0]
     
@@ -91,11 +99,21 @@ def create_gcf_holder(uu, vv, vis):
 
 # The interpolation call will first calculate the gcf holder (if not provided), and then use
 # those values to calculate the interpolated visibilities. 
-#
-# If the return_gcf flag is set, it returns the gcf holder (possibly useful for future interpolations 
-# where the gcf calculation represents a significant fraction of the computation time).
 
 def interpolate_uv(uu, vv, vis, gcf_holder=0):
+    """Calculate interpolated visibilities
+
+    Parameters
+    __________
+    uu: 1D array of u coordinates from data
+    vv: 1D array of v coordinates from data
+    vis: ModelVisibility object
+
+    Returns
+    _______
+    interp_vis: 2D array of interpolated visibilities with shape (N visibilities, M channels)
+    gcf_holder: boolean, optional. If True, it returns the gcf holder (possibly useful for future interpolations where the gcf calculation represents a significant fraction of the computation time).
+    """
     # create gcf_holder if one isn't provided
     if (gcf_holder==0):
         gcf_holder = create_gcf_holder(uu, vv, vis)
