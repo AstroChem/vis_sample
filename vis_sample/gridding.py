@@ -58,7 +58,7 @@ def gcffun(etas):
 # Caching the corrfun values results in a ~40% speed increase for future model corrections
 # corr_cache can be returned through the return_cache flag, then fed back in later
 
-def apply_corrfun(img, mu_ra, mu_dec, corr_cache=0, return_cache=False):
+def apply_corrfun(img, corr_cache=0):
 
     ndec, nra, nvel = img.data.shape
 
