@@ -117,7 +117,7 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=
     t0 = time.time()
     if (verbose==True): print "Applying corrfun"
 
-    corr_cache = apply_corrfun(mod_sky_img, mu_RA, mu_DEC, corr_cache=corr_cache, return_cache=return_corr_cache)
+    corr_cache = apply_corrfun(mod_sky_img, corr_cache=corr_cache)
 
     t1 = time.time()
     if (verbose==True): print "corr_fun apply time = " + str(t1-t0)
