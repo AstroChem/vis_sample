@@ -112,10 +112,10 @@ def interpolate_uv(uu, vv, vis, gcf_holder=0):
     # note that we could theoretically vectorize by channel as well, but this
     # produces a memory error - maybe the array is too large?
 
-    for l in range(vis.freqs.shape[0]):
-        VV_chan = vis.VV[:,:,l]
+    for f in range(vis.freqs.shape[0]):
+        VV_chan = vis.VV[:,:,f]
         VV = as_strided(VV_chan, shape=(VV_chan.shape[0]-4, VV_chan.shape[1]-4, 5, 5), strides=VV_chan.strides * 2)
-        interp_vis[:,l] = np.einsum("...ab->...", gcf_holder.gcf_arr*VV[v0,u0])/gcf_holder.w_arr
+        interp_vis[:,f] = np.einsum("...ab->...", gcf_holder.gcf_arr*VV[v0,u0])/gcf_holder.w_arr
 
 
     return interp_vis, gcf_holder
