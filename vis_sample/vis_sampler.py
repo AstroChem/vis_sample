@@ -11,7 +11,6 @@ import time
 # units for uu and vv are LAMBDA (ie number of wavelengths)
 # units for mu_RA and mu_DEC are arcsec
 
-<<<<<<< HEAD
 def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distance = None, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
     """Sample visibilities from a sky-brightness image
 

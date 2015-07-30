@@ -132,6 +132,10 @@ def import_model_fits(filename):
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
 
 def import_model_radmc(src_distance, filename):
+    """
+    src_distance: Distance to source in parsecs
+    filename: RADMC3d image file (should end in ".out")
+    """
     imagefile = open(filename)
     iformat = imagefile.readline()
     im_nx, im_ny = map(int, imagefile.readline().split()) #number of pixels along x and y axes
