@@ -1,5 +1,6 @@
 import numpy as np
 import astropy.io.fits as pyfits
+import astropy.io.ascii as ascii
 from constants import *
 from transforms import *
 import sys
@@ -97,7 +98,7 @@ def import_data_ms(filename):
 
 
 # imports model from a FITS file - note the assumptions on dimensions
-def import_model(filename):
+def import_model_fits(filename):
     """Imports model from a FITS file and returns SkyImage object
 
     Note the assumption that RA and DEC are given in degrees (converted to arcsec when returned in SkyImage object)
@@ -129,6 +130,27 @@ def import_model(filename):
     mod_vels = (np.arange(nchan_vel)-(mid_chan_vel-1))*delt_vel
 
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
+
+def import_model_radmc(src_distance, filename):
+    """
+    src_distance: Distance to source in parsecs
+    filename: RADMC3d image file (should end in ".out")
+    """
+    imagefile = open(filename)
+    iformat = imagefile.readline()
+    im_nx, im_ny = map(int, imagefile.readline().split()) #number of pixels along x and y axes
+    nlam = int(imagefile.readline())
+    pixsize_x, pixsize_y = map(float,imagefile.readline().split()) #pixel sizes in cm 
+    mod_ra = ((np.arange(im_nx) + 0.5) - im_nx/2.) * pixsize_x/(pc*src_distance*arcsec) #arcseconds
+    mod_dec = ((np.arange(im_ny) + 0.5) - im_ny/2.) * pixsize_y/(pc*src_distance*arcsec) #arcseconds
+    imvals = ascii.read(filename, format = 'fast_csv', guess = False, data_start = 4, fast_reader = {'use_fast_converter':True})['1']
+    mod_lams = imvals[:nlam]
+
+    #RADMC gives intensities in erg cm^(-2) s^(-1) Hz^(-1) ster^(-1); need to convert to Jy/pixel
+    pixsize = pixsize_x*pixsize_y/(src_distance*pc)**2 #pixel size in steradians
+    mod_data = np.rollaxis(np.reshape(imvals[nlam:],[nlam, im_ny, im_nx]),0,3)*pixsize*10**23
+
+    return SkyImage(np.fliplr(mod_data).astype('float64'), mod_ra, mod_dec, mod_lams)
 
 
 # ONLY CAN CLONE UVFITS
