@@ -38,13 +38,9 @@ def transform(img):
     vv = fftshift(fftfreq(nm, dm))
 
     for chan in range(img.freqs.shape[0]):
-        # Flip the image along the RA axis
-        # TODO: check that this is appropriate for RADMC packed images as well as LIME FITS cubes
-        data = img.data[::-1, :, chan]
-
         # properly pack the data for input using fftshift to move the component at
         # RA=0,DEC=0 to the first array element: data[0,0]
-        chan_fft = fftshift(fft2(fftshift(data)))
+        chan_fft = fftshift(fft2(fftshift(img.data[:, :, chan])))
         full_fft[2:-2,2:-2,chan] = chan_fft
 
         # we pad to prevent edge effects during interpolation
