@@ -7,10 +7,66 @@ from file_handling import *
 import time
 
 
-# currently the imagefile needs to be formatted with units of DEG in RA and DEC
+# currently the imagefile needs to be formatted with units of DEG in RA and DEC if in FITS form
 # units for uu and vv are LAMBDA (ie number of wavelengths)
+# units for mu_RA and mu_DEC are arcsec
 
-def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, src_distance = None, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
+<<<<<<< HEAD
+def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distance = None, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
+    """Sample visibilities from a sky-brightness image
+
+    vis_sample allows you to sample visibilities from a user-supplied sky-brightness image. 
+
+    (u,v) grid points can either be supplied by the user, or can be retrieved from a template uvfits file / measurement set.
+
+    The results can be output either to a uvfits file or returned back to the user (for scripting)
+
+    Parameters
+    __________
+    imagefile : the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a standard RADMC3D image.out file
+
+    for uv points use:
+        uvfile - uvfits file or measurement set with visibilities that the sky brightness will be interpolated to
+      OR        
+        uu, vv - numpy arrays - they need to be in units of lambda (i.e. number of wavelengths)
+
+    mu_RA - right ascension offset from phase center in arcseconds 
+
+    mu_DEC - declination offset from phase center in arcseconds
+
+    src_distance - distance to source in parsecs - only required for RADMC3D input images
+ 
+    gcf_holder - optional parameter to feed in a previously output gcf_holder (see below return_gcf). 
+                If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
+
+    corr_cache - optional parameter to feed in a previously output corr_cache (see below return_corr_cache). 
+
+    writefile - do you want to ouput visibilities to a file?
+        outfile - name of output file, needs to have either a .uvfits or .ms extension. Must match the format of the uvfile
+
+    verbose - display all progress output and timing, default = False
+
+    return_gcf - return the gcf cache to allow faster interpolation for many models   
+    
+    return_corr_cache - return the correction function cache to allow faster interpolation for many models 
+
+
+    Usage::
+
+    >> from vis_sample import vis_sample                                                                            # import the vis_sample command  
+
+    >> vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", writefile=True, outfile='interp.uvfits')         # sample my_model using data (u,v) points and output to interp.uvfits
+
+    >> interp_vis = vis_sample(imagefile="my_model.fits", uvfile="data.uvfits")                                     # sample my_model using data (u,v) points, interp_vis stores visibilities
+
+    In the second usage, interp_vis is the "raw" output visibility, ie just a numpy array of size [n_visibilities, n_chans]
+
+    We can also output the caches for faster future usage:
+
+    >> interp, gcf_holder = vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", return_gcf = True)          # sample my_model using data (u,v) points, also store the gcf_holder
+
+    >> interp2 = vis_sample(imagefile="second_model.fits", gcf_holder = gcf_holder)                                 # sample a second model using the same (u,v) points, this is faster now
+    """
 
     # Error cases #
     if imagefile==0:
@@ -75,7 +131,7 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, src_distance = None, gcf_holde
     t0 = time.time()
     if (verbose==True): print "Applying corrfun"
 
-    corr_cache = apply_corrfun(mod_sky_img, 0.0, 0.0, corr_cache=corr_cache, return_cache=return_corr_cache)
+    corr_cache = apply_corrfun(mod_sky_img, corr_cache=corr_cache)
 
     t1 = time.time()
     if (verbose==True): print "corr_fun apply time = " + str(t1-t0)
@@ -94,9 +150,9 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, src_distance = None, gcf_holde
 
     t1 = time.time()
     if (verbose==True): print "fft time = " + str(t1-t0)
-    if (verbose==True): print "FFT complete, starting interpolation"
+    if (verbose==True): print "FFT complete"
 
-
+    if (verbose==True): print "Starting interpolation"
 
 
     ###################################
@@ -105,18 +161,33 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, src_distance = None, gcf_holde
 
     t0 = time.time()
 
-    if (uvfile != 0):
-        interp, gcf_holder = interpolate_uv(data_vis.uu, data_vis.vv, mod_fft, return_gcf=return_gcf)
-
-    elif (gcf_holder != 0):
+    if (gcf_holder != 0):
         interp, dummy = interpolate_uv(gcf_holder.uu, gcf_holder.vv, mod_fft, gcf_holder=gcf_holder)
 
+    elif (uvfile != 0):
+        interp, gcf_holder = interpolate_uv(data_vis.uu, data_vis.vv, mod_fft)
+
     else:
-        interp, gcf_holder = interpolate_uv(uu, vv, mod_fft, return_gcf=return_gcf)
+        interp, gcf_holder = interpolate_uv(uu, vv, mod_fft)
 
     t1 = time.time()
     if (verbose==True): print "interpolation time = " + str(t1-t0)
     if (verbose==True): print "Interpolation complete"
+
+
+    #############################
+    #   Phase shift if needed   #
+    #############################
+
+    if ((mu_RA != 0) or (mu_DEC != 0)):
+        if (verbose==True): print "Starting phase shift"
+        t0 = time.time()
+        
+        interp = phase_shift(interp, gcf_holder.uu, gcf_holder.vv, mu_RA, mu_DEC)
+        
+        t1 = time.time()
+        if (verbose==True): print "Phase shift time = " + str(t1-t0)
+        if (verbose==True): print "Phase shift complete"
 
 
     ########################

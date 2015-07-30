@@ -17,6 +17,12 @@ vis_sample - Python Package for visibility sampling
       OR        
         uu, vv - numpy arrays - they need to be in units of lambda (ie number of wavelengths)
 
+    mu_RA - right ascension offset from phase center in arcseconds 
+
+    mu_DEC - declination offset from phase center in arcseconds
+
+    src_distance - distance to source in parsecs - only required for RADMC3D input images
+
     gcf_holder - optional parameter to feed in a previously output gcf_holder (see below return_gcf). 
                 If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
 

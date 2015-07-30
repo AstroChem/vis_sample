@@ -9,7 +9,7 @@ from numpy.lib.stride_tricks import as_strided
 
 
 
-# Calculate the gcf values for 7 fft image points around the dense grid points
+# Calculate the gcf values for 5 fft image points around the dense grid points
 # This is calculated as a 1d problem, calculating u and v weights separately
 # to be multiplied in the future as an outer product.
 #
@@ -33,10 +33,18 @@ def calc_dense_grid_gcf():
 # and indices to a GCF_holder
 
 def create_gcf_holder(uu, vv, vis):
+    """Return GcfHolder object for a given dataset of (u,v) visibilities
+
+    Parameters
+    __________
+    uu: 1D array of u coordinates from data
+    vv: 1D array of v coordinates from data
+    vis: ModelVisibility object
+    """
     nu = uu.shape[0]
     nv = vv.shape[0]
     
-    # recall that in the vis, we are padded by 3 zeros on either side in both u and v
+    # recall that in the vis, we are padded by 2 zeros on either side in both u and v
     npix_u = vis.uu.shape[0]
     npix_v = vis.vv.shape[0]
     dense_grid_gcf = calc_dense_grid_gcf()
@@ -70,7 +78,7 @@ def create_gcf_holder(uu, vv, vis):
     if npix_v > 5:
         iv0_grid = 500-(1001*v0/dv).astype(int)
 
-    # 4. Pull the gcf vals for the nearest 7 pixels around this dense grid point
+    # 4. Pull the gcf vals for the nearest 5 pixels around this dense grid point
     uw = dense_grid_gcf[iu0_grid,:]
     vw = dense_grid_gcf[iv0_grid,:]
 
@@ -91,11 +99,21 @@ def create_gcf_holder(uu, vv, vis):
 
 # The interpolation call will first calculate the gcf holder (if not provided), and then use
 # those values to calculate the interpolated visibilities. 
-#
-# If the return_gcf flag is set, it returns the gcf holder (possibly useful for future interpolations 
-# where the gcf calculation represents a significant fraction of the computation time).
 
-def interpolate_uv(uu, vv, vis, gcf_holder=0, return_gcf=False):
+def interpolate_uv(uu, vv, vis, gcf_holder=0):
+    """Calculate interpolated visibilities
+
+    Parameters
+    __________
+    uu: 1D array of u coordinates from data
+    vv: 1D array of v coordinates from data
+    vis: ModelVisibility object
+
+    Returns
+    _______
+    interp_vis: 2D array of interpolated visibilities with shape (N visibilities, M channels)
+    gcf_holder: boolean, optional. If True, it returns the gcf holder (possibly useful for future interpolations where the gcf calculation represents a significant fraction of the computation time).
+    """
     # create gcf_holder if one isn't provided
     if (gcf_holder==0):
         gcf_holder = create_gcf_holder(uu, vv, vis)
@@ -111,13 +129,13 @@ def interpolate_uv(uu, vv, vis, gcf_holder=0, return_gcf=False):
     # iterate through the channels and multiply weights by the windowed pixels
     # note that we could theoretically vectorize by channel as well, but this
     # produces a memory error - maybe the array is too large?
-
-    for l in range(vis.freqs.shape[0]):
-        VV_chan = vis.VV[:,:,l]
+    for f in range(vis.freqs.shape[0]):
+        VV_chan = vis.VV[:,:,f]
         VV = as_strided(VV_chan, shape=(VV_chan.shape[0]-4, VV_chan.shape[1]-4, 5, 5), strides=VV_chan.strides * 2)
-        interp_vis[:,l] = np.einsum("...ab->...", gcf_holder.gcf_arr*VV[v0,u0])/gcf_holder.w_arr
+        interp_vis[:,f] = np.einsum("...ab->...", gcf_holder.gcf_arr*VV[v0,u0])/gcf_holder.w_arr
 
-    if (return_gcf==True):
-        return interp_vis, gcf_holder
-    else:
-        return interp_vis, 0
+    # conjugate the interpolated visibility to make it compatible with ALMA/SMA data
+    # this has to do with an AB/BA antenna/baseline convention
+    interp_vis = np.conj(interp_vis)
+
+    return interp_vis, gcf_holder

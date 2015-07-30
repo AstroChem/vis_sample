@@ -6,8 +6,8 @@ from transforms import *
 import sys
 import shutil
 
-# imports data from uvfits file and exports a data visibility
 def import_data_uvfits(filename):
+    """Imports data from uvfits file and returns Visibility object"""
     dat = pyfits.open(filename)
     data = dat[0].data
     dhd = dat[0].header
@@ -29,13 +29,13 @@ def import_data_uvfits(filename):
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[0])*dat[1].data['ch width'][0]/1e6)
+    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[0])*dat[1].data['ch width'][0]/1e6)
 
 
-# imports data from a casa measurement set (ms) and exports a data visibility
 # CASA interfacing code comes from Peter Williams' casa-python and casa-data package
 # commands for retrieving ms data are from Sean Andrews
 def import_data_ms(filename):
+    """Imports data from a casa measurement set (ms) and returns Visibility object"""
     try:
         import casac
     except:
@@ -94,11 +94,16 @@ def import_data_ms(filename):
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV, data_uu, data_vv, data_wgts, (np.arange(data_VV.shape[0])*chan_width + start_freq)/1e6)
+    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, (np.arange(data_VV.shape[0])*chan_width + start_freq)/1e6)
 
 
 # imports model from a FITS file - note the assumptions on dimensions
 def import_model_fits(filename):
+    """Imports model from a FITS file and returns SkyImage object
+
+    Note the assumption that RA and DEC are given in degrees (converted to arcsec when returned in SkyImage object)
+
+    """
     mod = pyfits.open(filename)
     mod_data = np.rollaxis(mod[0].data, 0, 3)
     mhd = mod[0].header
@@ -120,8 +125,8 @@ def import_model_fits(filename):
     delt_vel = mhd['CDELT3']
 
     # the assumption is that the RA and DEC are given in degrees, convert to arcsec 
-    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*abs(delt_ra)*3600
-    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*abs(delt_dec)*3600
+    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*delt_ra*3600
+    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*delt_dec*3600
     mod_vels = (np.arange(nchan_vel)-(mid_chan_vel-1))*delt_vel
 
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)

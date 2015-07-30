@@ -6,8 +6,9 @@ from gridding import *
 from classes import *
 
 
-# Transform the SkyImage using FFT and return a Model_Visibility
 def transform(img):
+    """Transform SkyImage object using FFT and return ModelVisibility object"""
+
      # we pad to prevent edge effects during interpolation
     full_fft = np.zeros(((img.data.shape[0]+4),(img.data.shape[1]+4), img.data.shape[2]), dtype='complex')
 
@@ -37,11 +38,9 @@ def transform(img):
     vv = fftshift(fftfreq(nm, dm))
 
     for chan in range(img.freqs.shape[0]):
-        data = img.data[::-1, :, chan]
-
         # properly pack the data for input using fftshift to move the component at
         # RA=0,DEC=0 to the first array element: data[0,0]
-        chan_fft = fftshift(fft2(fftshift(data)))
+        chan_fft = fftshift(fft2(fftshift(img.data[:, :, chan])))
         full_fft[2:-2,2:-2,chan] = chan_fft
 
         # we pad to prevent edge effects during interpolation
@@ -52,20 +51,27 @@ def transform(img):
 
 
 
+def phase_shift(vis, uu, vv, mu_RA, mu_DEC):
+    """Shift visibilities given an offset from the phase center
 
+    Parameters
+    __________
+    vis: 2D array of visibilities with shape (n visibilities, m channels)
+    uu: 1D array of u coordinates from data
+    vv: 1D array of v coordinates from data
+    mu_RA: Offset of right ascension from phase center (arcsec)
+    mu_DEC: Offset of right ascension from phase center (arcsec)
 
+    Returns
+    _______ 
+    vis: 2D array of phase-shifted visibilities with shape (n visibilities, m channels)
+    """
+    # calculate the phase shift for each visibility
+    shifts = np.exp(-2*pi*1.0j * (vv*(-mu_DEC)*arcsec + uu*(-mu_RA)*arcsec))
 
-# This function lets us shift visibilities given a new centroid (in arcsec)
-def phase_shift(vis, mu_RA, mu_DEC):
-    mu = np.array([mu_RA, mu_DEC]) * arcsec # [radians]
-    nu = vis.uu.shape[0]
-    nv = vis.vv.shape[0]
-    
     # Go through each visibility and apply the phase shift
-    for l in range(vis.freqs.shape[0]):
-        for i in range(nu):
-            for j in range(nv):
-                R = np.array([vis.uu[i], vis.vv[j]])
-                # Not actually in polar phase form
-                shift = np.exp(-2*pi*1.0j * np.sum(R*mu))
-                vis.VV[j,i,l] = vis.VV[j,i,l] * shift
+    vis = vis * shifts[:,np.newaxis]
+
+    return vis
+
+
