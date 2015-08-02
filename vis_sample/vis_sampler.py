@@ -124,7 +124,7 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
              return ""
         else: mod_sky_img = import_model_radmc(src_distance, imagefile)
 
-    if len(mod_sky_img.freqs)!=len(data_vis.freqs):
+    if uvfile!=0 and len(mod_sky_img.freqs)!=len(data_vis.freqs):
         print "WARNING: Number of channels in data does not match number of channels in model image. Interpolation can be completed, but model visibilities cannot be written to file."
 
     if (verbose==True): print "Read model file to be interpolated: "+imagefile
