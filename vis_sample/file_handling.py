@@ -102,7 +102,6 @@ def import_model_fits(filename):
     """Imports model from a FITS file and returns SkyImage object
 
     Note the assumption that RA and DEC are given in degrees (converted to arcsec when returned in SkyImage object)
-
     """
     mod = pyfits.open(filename)
     mod_data = np.rollaxis(mod[0].data, 0, 3)
@@ -132,7 +131,10 @@ def import_model_fits(filename):
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
 
 def import_model_radmc(src_distance, filename):
-    """
+    """Imports model from a RADMC3D image.out file and returns SkyImage object
+
+    Parameters
+    __________
     src_distance: Distance to source in parsecs
     filename: RADMC3d image file (should end in ".out")
     """
@@ -156,6 +158,14 @@ def import_model_radmc(src_distance, filename):
 # ONLY CAN CLONE UVFITS
 # TODO - FIGURE OUT HOW TO WRITE FROM SCRATCH
 def export_uvfits_from_clone(vis, outfile, uvfits_clone):
+    """Exports model visibilities to uvfits file
+
+    Parameters
+    __________
+    vis: Visibility object
+    outfile: Name of file being written out to
+    ms_clone: Input uvfits file being cloned
+    """
     clone = pyfits.open(uvfits_clone)
     clone_data = clone[0].data
 
@@ -176,9 +186,17 @@ def export_uvfits_from_clone(vis, outfile, uvfits_clone):
 # ONLY CAN CLONE MS
 # TODO - FIGURE OUT HOW TO WRITE FROM SCRATCH
 def export_ms_from_clone(vis, outfile, ms_clone):
+    """Exports model visibilities to measurement set
+
+    Parameters
+    __________
+    vis: Visibility object
+    outfile: Name of file being written out to
+    ms_clone: Input measurement set being cloned
+    """
     try:
         import casac
-    except:
+    except ImportError:
         print "casac was not able to be imported, make sure all dependent packages are installed"
         print "try: conda install -c pkgw casa-python casa-data"
         sys.exit(1)
