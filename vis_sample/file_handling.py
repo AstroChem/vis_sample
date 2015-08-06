@@ -131,7 +131,7 @@ def import_model_fits(filename):
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
 
 def import_model_radmc(src_distance, filename):
-    """Imports model from a RADMC3D image.out file and returns SkyImage object
+    """Imports model from a RADMC3D image.out file (ascii format) and returns SkyImage object
 
     Parameters
     __________
