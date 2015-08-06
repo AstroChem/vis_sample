@@ -10,7 +10,7 @@ vis_sample - Python Package for visibility sampling
 
 
   Input parameters:
-    imagefile - the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC
+    imagefile - the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a RADMC3D image file in ascii format
 
     for uv points use:
         uvfile - uvfits file or measurement set with visibilities that the sky brightness will be interpolated to

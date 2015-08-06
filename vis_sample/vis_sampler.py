@@ -22,7 +22,7 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
 
     Parameters
     __________
-    imagefile : the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a standard RADMC3D image.out file
+    imagefile : the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a RADMC3D image.out file (ascii format)
 
     for uv points use:
         uvfile - uvfits file or measurement set with visibilities that the sky brightness will be interpolated to
