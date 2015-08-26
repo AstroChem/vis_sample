@@ -7,11 +7,11 @@ from file_handling import *
 import time
 
 
-# currently the imagefile needs to be formatted with units of DEG in RA and DEC
+# currently the imagefile needs to be formatted with units of DEG in RA and DEC if in FITS form
 # units for uu and vv are LAMBDA (ie number of wavelengths)
 # units for mu_RA and mu_DEC are arcsec
 
-def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
+def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distance = None, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
     """Sample visibilities from a sky-brightness image
 
     vis_sample allows you to sample visibilities from a user-supplied sky-brightness image. 
@@ -22,13 +22,19 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=
 
     Parameters
     __________
-    imagefile : the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC
+    imagefile : the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a RADMC3D image.out file (ascii format)
 
     for uv points use:
         uvfile - uvfits file or measurement set with visibilities that the sky brightness will be interpolated to
       OR        
         uu, vv - numpy arrays - they need to be in units of lambda (i.e. number of wavelengths)
 
+    mu_RA - right ascension offset from phase center in arcseconds 
+
+    mu_DEC - declination offset from phase center in arcseconds
+
+    src_distance - distance to source in parsecs - only required for RADMC3D input images
+ 
     gcf_holder - optional parameter to feed in a previously output gcf_holder (see below return_gcf). 
                 If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
 
@@ -110,7 +116,17 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=
     ####################################################
 
     # now that we have either a data_vis or a list of uu,vv points, let's import the model file
-    mod_sky_img = import_model(imagefile)
+    if "fits" in imagefile:
+        mod_sky_img = import_model_fits(imagefile)
+    elif "image.out" in imagefile:
+        if src_distance is None:
+             print "A source distance in pc needs to be provided in order to process a RADMC3D image file"
+             return ""
+        else: mod_sky_img = import_model_radmc(src_distance, imagefile)
+
+    if uvfile!=0 and len(mod_sky_img.freqs)!=len(data_vis.freqs):
+        print "WARNING: Number of channels in data does not match number of channels in model image. Interpolation can be completed, but model visibilities cannot be written to file."
+
     if (verbose==True): print "Read model file to be interpolated: "+imagefile
 
     # now apply the correction function
@@ -181,7 +197,7 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, gcf_holder=
     ########################
 
     # simplest case is just writing to a file:
-    if (writefile==True):
+    if (writefile==True and len(mod_sky_img.freqs)==len(data_vis.freqs)):
         if (verbose==True): print "Writing out to file: "+outfile
         interp_vis = Visibility(interp, data_vis.uu, data_vis.vv, np.ones(interp.shape), data_vis.freqs)
         if "fits" in outfile:

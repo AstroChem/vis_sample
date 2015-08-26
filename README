@@ -10,21 +10,23 @@ vis_sample - Python Package for visibility sampling
 
 
   Input parameters:
-    imagefile - the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC
+    imagefile - the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a RADMC3D image file in ascii format. If you're planning on using vis_sample on multiple RADMC3D models, do not use cached gcf_holder and corr_cache values unless your source distance is fixed. 
 
     for uv points use:
         uvfile - uvfits file or measurement set with visibilities that the sky brightness will be interpolated to
       OR        
         uu, vv - numpy arrays - they need to be in units of lambda (ie number of wavelengths)
 
+    mu_RA - right ascension offset from phase center in arcseconds 
+
+    mu_DEC - declination offset from phase center in arcseconds
+
+    src_distance - distance to source in parsecs - only required for RADMC3D input images
+
     gcf_holder - optional parameter to feed in a previously output gcf_holder (see below return_gcf). 
                 If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
 
     corr_cache - optional parameter to feed in a previously output corr_cache (see below return_corr_cache). 
-
-    mu_RA: offset in right ascension from phase center (arcsec)
-
-    mu_DEC: offset in declination from phase center (arcsec)
 
 
   Output parameters:
