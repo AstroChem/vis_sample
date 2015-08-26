@@ -63,30 +63,45 @@ def import_data_ms(filename):
     rfreq = start_freq + nchan/2.0*chan_width
     ms.close()
 
-    data = np.squeeze(data)
 
     # break out the u, v spatial frequencies, convert from m to lambda
     uu = uvw[0,:]*rfreq/(cc/100)
     vv = uvw[1,:]*rfreq/(cc/100)
 
-    # polarization averaging
-    Re_xx = data[0,:].real
-    Re_yy = data[1,:].real
-    Im_xx = data[0,:].imag
-    Im_yy = data[1,:].imag
-    weight_xx = weight[0,:]
-    weight_yy = weight[1,:]
+    # check to see whether the polarizations are already averaged
+    data = np.squeeze(data)
+    weight = np.squeeze(weight)
 
-    # - weighted averages
-    Re = (Re_xx*weight_xx + Re_yy*weight_yy) / (weight_xx + weight_yy)
-    Im = (Im_xx*weight_xx + Im_yy*weight_yy) / (weight_xx + weight_yy)
-    wgts = (weight_xx + weight_yy)
+    if data.shape[0] != 2:    # SHOULD FIND A MORE ROBUST WAY TO CHECK FOR POLARIZATION AVERAGING
+        Re = data.real
+        Im = data.imag
+        wgts = weight
+
+    else:
+        # polarization averaging
+        Re_xx = data[0,:].real
+        Re_yy = data[1,:].real
+        Im_xx = data[0,:].imag
+        Im_yy = data[1,:].imag
+        weight_xx = weight[0,:]
+        weight_yy = weight[1,:]
+
+        # - weighted averages
+        Re = (Re_xx*weight_xx + Re_yy*weight_yy) / (weight_xx + weight_yy)
+        Im = (Im_xx*weight_xx + Im_yy*weight_yy) / (weight_xx + weight_yy)
+        wgts = (weight_xx + weight_yy)
 
     # toss out the autocorrelation placeholders
     xc = np.where(ant1 != ant2)[0]
 
-    data_real = Re[:,xc]
-    data_imag = Im[:,xc]
+    # check if there's only a single channel - THIS IS SHODDILY DONE CURRENTLY, NEED TO MAKE MORE ROBUST
+    if len(data.shape) < 2:
+        data_real = Re[xc]
+        data_imag = Im[xc]
+    else:
+        data_real = Re[:,xc]
+        data_imag = Im[:,xc]
+
     data_wgts = wgts[xc]
     data_uu = uu[xc]
     data_vv = vv[xc]
@@ -104,7 +119,18 @@ def import_model(filename):
 
     """
     mod = pyfits.open(filename)
-    mod_data = np.rollaxis(mod[0].data, 0, 3)
+
+    # first sterilize the input and remove any dummy channel or polarization dimensions
+    # SHOULD FIND A BETTER WAY TO DISTINGUISH BETWEEN POLARIZATION AND CHANNELS
+    mod_data = np.squeeze(mod[0].data)
+
+    # need to check if this is a single channel image
+    if len(mod_data.shape) < 3:
+        mod_data = np.expand_dims(mod_data, axis=2)
+    else: 
+        # roll the channel dim to the end
+        mod_data = np.rollaxis(mod_data, 0, 3)
+
     mhd = mod[0].header
 
     npix_ra = mhd['NAXIS1']
@@ -119,14 +145,19 @@ def import_model(filename):
     if delt_dec < 0:
         mod_data = np.flipud(mod_data)
 
+    # should be prepared for the case that it is a single channel image and that CRPIX3 and CDELT3 not set
     nchan_vel = mhd['NAXIS3']
-    mid_chan_vel = mhd['CRPIX3']
-    delt_vel = mhd['CDELT3']
+    try:
+        mid_chan_vel = mhd['CRPIX3']
+        delt_vel = mhd['CDELT3']
+        mod_vels = (np.arange(nchan_vel)-(mid_chan_vel-1))*delt_vel
+    except:
+        # remember that this is effectively a dummy placeholder, so this is sketchy but should probably be ok
+        mod_vels = [0]
 
     # the assumption is that the RA and DEC are given in degrees, convert to arcsec 
     mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*delt_ra*3600
     mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*delt_dec*3600
-    mod_vels = (np.arange(nchan_vel)-(mid_chan_vel-1))*delt_vel
 
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
 
@@ -168,26 +199,42 @@ def export_ms_from_clone(vis, outfile, ms_clone):
     # Use CASA table tools to fill new DATA and WEIGHT
     tb.open(outfile, nomodify=False)
 
-    # we need to pull the antennas and find where the autocorrelation values aren and aren't
+    # we need to pull the antennas and find where the autocorrelation values are and aren't
     ant1    = tb.getcol("ANTENNA1")
     ant2    = tb.getcol("ANTENNA2")
     ac = np.where(ant1 == ant2)[0]
     xc = np.where(ant1 != ant2)[0]
 
-    data_array = np.zeros((2, vis.VV.shape[1], ant1.shape[0])).astype(complex)
+    # check if the polarizations were averaged
+    data    = tb.getcol("DATA")
+    if (data.shape[0] != 2):
+        data_array = np.zeros((1, vis.VV.shape[1], ant1.shape[0])).astype(complex)
 
-    # fill the xc with our interpolation
-    data_array[0, :, xc] = vis.VV
-    data_array[1, :, xc] = vis.VV
+        # fill the xc with our interpolation
+        data_array[0, :, xc] = vis.VV
 
-    # fill the ac with 0's
-    data_array[0, :, ac] = 0 + 0j
-    data_array[1, :, ac] = 0 + 0j
+        # fill the ac with 0's
+        data_array[0, :, xc] = 0 + 0j
 
-    # now do the same with the weights
-    weights = np.zeros((2, ant1.shape[0]))
-    weights[0, xc] = np.mean(vis.wgts, axis=1)
-    weights[1, xc] = np.mean(vis.wgts, axis=1)
+        # now do the same with the weights
+        weights = np.zeros((1, ant1.shape[0]))
+        weights[0, xc] = np.mean(vis.wgts, axis=1)
+
+    else:
+        data_array = np.zeros((2, vis.VV.shape[1], ant1.shape[0])).astype(complex)
+
+        # fill the xc with our interpolation
+        data_array[0, :, xc] = vis.VV
+        data_array[1, :, xc] = vis.VV
+
+        # fill the ac with 0's
+        data_array[0, :, ac] = 0 + 0j
+        data_array[1, :, ac] = 0 + 0j
+
+        # now do the same with the weights
+        weights = np.zeros((2, ant1.shape[0]))
+        weights[0, xc] = np.mean(vis.wgts, axis=1)
+        weights[1, xc] = np.mean(vis.wgts, axis=1)   
 
     tb.putcol("DATA", data_array)
     tb.putcol("WEIGHT", weights)
