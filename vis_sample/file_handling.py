@@ -97,8 +97,8 @@ def import_data_ms(filename):
 
     # check if there's only a single channel - THIS IS SHODDILY DONE CURRENTLY, NEED TO MAKE MORE ROBUST
     if len(data.shape) < 2:
-        data_real = Re[xc]
-        data_imag = Im[xc]
+        data_real = Re[np.newaxis, xc]
+        data_imag = Im[np.newaxis, xc]
     else:
         data_real = Re[:,xc]
         data_imag = Im[:,xc]
@@ -254,7 +254,7 @@ def export_ms_from_clone(vis, outfile, ms_clone):
         data_array[0, :, xc] = vis.VV
 
         # fill the ac with 0's
-        data_array[0, :, xc] = 0 + 0j
+        data_array[0, :, ac] = 0 + 0j
 
         # now do the same with the weights
         weights = np.zeros((1, ant1.shape[0]))
