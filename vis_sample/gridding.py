@@ -62,7 +62,7 @@ def gcffun(etas):
 # Caching the corrfun values results in a ~40% speed increase for future model corrections
 # corr_cache can be returned through the return_cache flag, then fed back in later
 
-def apply_corrfun(img, corr_cache=0):
+def apply_corrfun(img, corr_cache=None):
     """Applies correction function to sky brightness image
 
     Parameters
@@ -78,7 +78,7 @@ def apply_corrfun(img, corr_cache=0):
 
     ndec, nra, nvel = img.data.shape
 
-    if (corr_cache==0):
+    if (corr_cache is None):
         corr_cache = np.zeros([ndec, nra])
 
         eta_x = np.array([0])

@@ -6,12 +6,11 @@ from interpolation import interpolate_uv
 from file_handling import *
 import time
 
-
 # currently the imagefile needs to be formatted with units of DEG in RA and DEC if in FITS form
 # units for uu and vv are LAMBDA (ie number of wavelengths)
 # units for mu_RA and mu_DEC are arcsec
 
-def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distance = None, gcf_holder=0, corr_cache=0, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
+def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distance = None, gcf_holder=0, corr_cache=None, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
     """Sample visibilities from a sky-brightness image
 
     vis_sample allows you to sample visibilities from a user-supplied sky-brightness image. 
@@ -217,3 +216,4 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
         return interp, corr_cache
     else:
         return interp
+
