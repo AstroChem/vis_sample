@@ -6,11 +6,7 @@ from interpolation import interpolate_uv
 from file_handling import *
 import time
 
-# currently the imagefile needs to be formatted with units of DEG in RA and DEC if in FITS form
-# units for uu and vv are LAMBDA (ie number of wavelengths)
-# units for mu_RA and mu_DEC are arcsec
-
-def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distance = None, gcf_holder=0, corr_cache=None, writefile=False, outfile="", verbose=False, return_gcf=False, return_corr_cache=False):
+def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0, src_distance = None, gcf_holder=None, corr_cache=None, outfile=None, verbose=False, return_gcf=False, return_corr_cache=False):
     """Sample visibilities from a sky-brightness image
 
     vis_sample allows you to sample visibilities from a user-supplied sky-brightness image. 
@@ -34,26 +30,25 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
 
     src_distance - distance to source in parsecs - only required for RADMC3D input images
  
-    gcf_holder - optional parameter to feed in a previously output gcf_holder (see below return_gcf). 
+    gcf_holder - (optional) gcf_holder object returned by previous call to vis_sample (see below return_gcf). 
                 If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
 
-    corr_cache - optional parameter to feed in a previously output corr_cache (see below return_corr_cache). 
+    corr_cache - (optional parameter) 2D corr_cache array output by previous call to vis_sample (see below return_corr_cache). 
 
-    writefile - do you want to ouput visibilities to a file?
-        outfile - name of output file, needs to have either a .uvfits or .ms extension. Must match the format of the uvfile
+    outfile - name of optional output file, needs to have either a .uvfits or .ms extension consistent with extension of uvfile
 
-    verbose - display all progress output and timing, default = False
+    verbose - prints all progress output and timing
 
-    return_gcf - return the gcf cache to allow faster interpolation for many models   
+    return_gcf - (boolean) flag to return the gcf cache to allow faster interpolation for many models   
     
-    return_corr_cache - return the correction function cache to allow faster interpolation for many models 
+    return_corr_cache - (boolean) flag to return the correction function cache to allow faster interpolation for many models 
 
 
     Usage::
 
     >> from vis_sample import vis_sample                                                                            # import the vis_sample command  
 
-    >> vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", writefile=True, outfile='interp.uvfits')         # sample my_model using data (u,v) points and output to interp.uvfits
+    >> vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", outfile='interp.uvfits')         # sample my_model using data (u,v) points and output to interp.uvfits
 
     >> interp_vis = vis_sample(imagefile="my_model.fits", uvfile="data.uvfits")                                     # sample my_model using data (u,v) points, interp_vis stores visibilities
 
@@ -64,30 +59,27 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
     >> interp, gcf_holder = vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", return_gcf = True)          # sample my_model using data (u,v) points, also store the gcf_holder
 
     >> interp2 = vis_sample(imagefile="second_model.fits", gcf_holder = gcf_holder)                                 # sample a second model using the same (u,v) points, this is faster now
+
+    >> interp, gcf_holder, corr_cache = vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", return_gcf = True, return_corr_cache = True)          # sample my_model using data (u,v) points, also store the gcf_holder and corr_cache
+
+    >> interp2 = vis_sample(imagefile="second_model.fits", gcf_holder = gcf_holder, corr_cache=corr_cache)                                 # sample a second model using the same (u,v) points, this is faster now
     """
 
     # Error cases #
-    if imagefile==0:
+    if not imagefile:
         print "Please supply an input imagefile to FFT and sample"
-        return ""
+        return 
 
-    if (writefile==True and outfile==""):
-        print "Please supply an output file name (outfile) if writing to a file"
-        return ""
+    if outfile:
+        if return_gcf:
+            print "Can only return gcf cache when not writing out to a file"
+            return 
+        if not uvfile: 
+            print "Can only write out when there is an input data file (for header info)"
+            return 
 
-    if (writefile==True and return_gcf==True):
-        print "Can only return gcf cache when not writing out to a file"
-        return ""
-
-    if (writefile==True and uvfile==0):
-        print "Can only write out when there is an input data file (for header info)"
-        return ""
-
-    if (uvfile == 0):
-        if (np.size(uu) == 0) or (np.size(vv) == 0):
-            if (gcf_holder == 0):
-                print "Please supply either a uvfits file to interpolate onto (uvfile), a list of uv points (uu & vv), or a gcf_holder cache"
-
+    if not (uu and vv or gcf_holder or uvfile):
+         print "Please supply either a uvfits file to interpolate onto (uvfile), a list of uv points (uu & vv), or a gcf_holder cache"
 
 
     ###########################
@@ -95,17 +87,17 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
     ###########################
 
     # if we don't have uu and vv specified, then read them in from the data file
-    if (uvfile != 0):
+    if uvfile:
         if "fits" in uvfile:
             data_vis = import_data_uvfits(uvfile)
         elif "ms" in uvfile:
             data_vis = import_data_ms(uvfile)
         else:
             print "not a valid data file to interpolate onto"
-        if (verbose==True): print "Read data file to interpolate onto: "+uvfile
+        if verbose: print "Read data file to interpolate onto: "+uvfile
 
     # or read from the cache being fed in
-    elif (gcf_holder != 0):
+    elif gcf_holder:
         gcf_holder = gcf_holder
         
 
@@ -120,22 +112,23 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
     elif "image.out" in imagefile:
         if src_distance is None:
              print "A source distance in pc needs to be provided in order to process a RADMC3D image file"
-             return ""
+             return 
         else: mod_sky_img = import_model_radmc(src_distance, imagefile)
 
-    if uvfile!=0 and len(mod_sky_img.freqs)!=len(data_vis.freqs):
+    if uvfile and (len(mod_sky_img.freqs)!=len(data_vis.freqs)):
         print "WARNING: Number of channels in data does not match number of channels in model image. Interpolation can be completed, but model visibilities cannot be written to file."
 
-    if (verbose==True): print "Read model file to be interpolated: "+imagefile
-
     # now apply the correction function
-    t0 = time.time()
-    if (verbose==True): print "Applying corrfun"
+    if verbose:
+        print "Read model file to be interpolated: "+imagefile
+        t0 = time.time()
+        print "Applying corrfun"
 
     corr_cache = apply_corrfun(mod_sky_img, corr_cache=corr_cache)
 
-    t1 = time.time()
-    if (verbose==True): print "corr_fun apply time = " + str(t1-t0)
+    if verbose: 
+        t1 = time.time()
+        print "corr_fun apply time = " + str(t1-t0)
 
 
 
@@ -144,16 +137,17 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
     #   FFT the image   #
     #####################
 
-    if (verbose==True): print "Starting FFT"
-    t0 = time.time()
+    if verbose:
+        print "Starting FFT"
+        t0 = time.time()
 
     mod_fft = transform(mod_sky_img)
 
-    t1 = time.time()
-    if (verbose==True): print "fft time = " + str(t1-t0)
-    if (verbose==True): print "FFT complete"
-
-    if (verbose==True): print "Starting interpolation"
+    if verbose: 
+        t1 = time.time()
+        print "fft time = " + str(t1-t0)
+        print "FFT complete"
+        print "Starting interpolation"
 
 
     ###################################
@@ -162,33 +156,36 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
 
     t0 = time.time()
 
-    if (gcf_holder != 0):
+    if gcf_holder:
         interp, dummy = interpolate_uv(gcf_holder.uu, gcf_holder.vv, mod_fft, gcf_holder=gcf_holder)
 
-    elif (uvfile != 0):
+    elif uvfile:
         interp, gcf_holder = interpolate_uv(data_vis.uu, data_vis.vv, mod_fft)
 
     else:
         interp, gcf_holder = interpolate_uv(uu, vv, mod_fft)
 
     t1 = time.time()
-    if (verbose==True): print "interpolation time = " + str(t1-t0)
-    if (verbose==True): print "Interpolation complete"
+    if verbose: 
+        print "interpolation time = " + str(t1-t0)
+        print "Interpolation complete"
 
 
     #############################
     #   Phase shift if needed   #
     #############################
 
-    if ((mu_RA != 0) or (mu_DEC != 0)):
-        if (verbose==True): print "Starting phase shift"
-        t0 = time.time()
+    if not (mu_RA == 0 and mu_DEC == 0):
+        if verbose: 
+            print "Starting phase shift"
+            t0 = time.time()
         
         interp = phase_shift(interp, gcf_holder.uu, gcf_holder.vv, mu_RA, mu_DEC)
         
-        t1 = time.time()
-        if (verbose==True): print "Phase shift time = " + str(t1-t0)
-        if (verbose==True): print "Phase shift complete"
+        if verbose: 
+            t1 = time.time()
+            print "Phase shift time = " + str(t1-t0)
+            print "Phase shift complete"
 
 
     ########################
@@ -196,23 +193,24 @@ def vis_sample(imagefile=0, uvfile=0, uu=0, vv=0, mu_RA=0, mu_DEC=0, src_distanc
     ########################
 
     # simplest case is just writing to a file:
-    if (writefile==True and len(mod_sky_img.freqs)==len(data_vis.freqs)):
-        if (verbose==True): print "Writing out to file: "+outfile
+    if outfile and len(mod_sky_img.freqs)==len(data_vis.freqs):
+        if verbose:
+            print "Writing out to file: "+outfile
         interp_vis = Visibility(interp, data_vis.uu, data_vis.vv, np.ones(interp.shape), data_vis.freqs)
         if "fits" in outfile:
             export_uvfits_from_clone(interp_vis, outfile, uvfile)
-        if "ms" in outfile:
+        elif "ms" in outfile:
             export_ms_from_clone(interp_vis, outfile, uvfile)
 
         # and we're done!
-        return ""
+        return 
 
-    if (return_gcf == True):
-        if (return_corr_cache == True):
+    if return_gcf:
+        if return_corr_cache:
             return interp, gcf_holder, corr_cache
         else:
             return interp, gcf_holder
-    elif (return_corr_cache == True):
+    elif return_corr_cache:
         return interp, corr_cache
     else:
         return interp
