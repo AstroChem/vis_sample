@@ -108,11 +108,12 @@ def interpolate_uv(uu, vv, vis, gcf_holder=None):
     uu: 1D array of u coordinates from data
     vv: 1D array of v coordinates from data
     vis: ModelVisibility object
+    gcf_holder: gcf_holder object. If None, gcf_holder object will be computed. 
 
     Returns
     _______
     interp_vis: 2D array of interpolated visibilities with shape (N visibilities, M channels)
-    gcf_holder: boolean, optional. If True, it returns the gcf holder (possibly useful for future interpolations where the gcf calculation represents a significant fraction of the computation time).
+    gcf_holder: gcf_holder object (possibly useful for future interpolations where the gcf calculation represents a significant fraction of the computation time).
     """
     # create gcf_holder if one isn't provided
     if not gcf_holder:
