@@ -100,7 +100,7 @@ def create_gcf_holder(uu, vv, vis):
 # The interpolation call will first calculate the gcf holder (if not provided), and then use
 # those values to calculate the interpolated visibilities. 
 
-def interpolate_uv(uu, vv, vis, gcf_holder=0):
+def interpolate_uv(uu, vv, vis, gcf_holder=None):
     """Calculate interpolated visibilities
 
     Parameters
@@ -115,7 +115,7 @@ def interpolate_uv(uu, vv, vis, gcf_holder=0):
     gcf_holder: boolean, optional. If True, it returns the gcf holder (possibly useful for future interpolations where the gcf calculation represents a significant fraction of the computation time).
     """
     # create gcf_holder if one isn't provided
-    if (gcf_holder==0):
+    if not gcf_holder:
         gcf_holder = create_gcf_holder(uu, vv, vis)
 
     # create the new interpolated visibility holder

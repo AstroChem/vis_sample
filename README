@@ -2,61 +2,60 @@ vis_sample - Python Package for visibility sampling
 ====================================================
 
   Purpose:
-    vis_sample allows you to sample visibilities from a user-supplied sky-brightness image.
+    vis_sample allows you to sample visibilities from a user-supplied sky-brightness image. 
 
     (u,v) grid points can either be supplied by the user, or can be retrieved from a template uvfits file / measurement set.
 
     The results can be output either to a uvfits file or returned back to the user (for scripting)
 
-
-  Input parameters:
-    imagefile - the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a RADMC3D image file in ascii format. If you're planning on using vis_sample on multiple RADMC3D models, do not use cached gcf_holder and corr_cache values unless your source distance is fixed. 
+    Parameters
+    __________
+    imagefile : the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a RADMC3D image.out file (ascii format)
 
     for uv points use:
         uvfile - uvfits file or measurement set with visibilities that the sky brightness will be interpolated to
       OR        
-        uu, vv - numpy arrays - they need to be in units of lambda (ie number of wavelengths)
+        uu, vv - numpy arrays - they need to be in units of lambda (i.e. number of wavelengths)
 
     mu_RA - right ascension offset from phase center in arcseconds 
 
     mu_DEC - declination offset from phase center in arcseconds
 
     src_distance - distance to source in parsecs - only required for RADMC3D input images
-
-    gcf_holder - optional parameter to feed in a previously output gcf_holder (see below return_gcf). 
+ 
+    gcf_holder - (optional) gcf_holder object returned by previous call to vis_sample (see below return_gcf). 
                 If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
 
-    corr_cache - optional parameter to feed in a previously output corr_cache (see below return_corr_cache). 
+    corr_cache - (optional parameter) 2D corr_cache array output by previous call to vis_sample (see below return_corr_cache). 
 
+    outfile - name of optional output file, needs to have either a .uvfits or .ms extension consistent with extension of uvfile
 
-  Output parameters:
-    writefile - do you want to ouput visibilities to a file?
-        outfile - name of output file, needs to have either a .uvfits or .ms extension. Must match the format of the uvfile
+    verbose - prints all progress output and timing
 
-    verbose - display all progress output and timing, default = False
-
-    return_gcf - return the gcf cache to allow faster interpolation for many models   
+    return_gcf - (boolean) flag to return the gcf cache to allow faster interpolation for many models   
     
-    return_corr_cache - return the correction function cache to allow faster interpolation for many models 
+    return_corr_cache - (boolean) flag to return the correction function cache to allow faster interpolation for many models 
 
 
-
-  Usage::
+    Usage::
 
     >> from vis_sample import vis_sample                                                                            # import the vis_sample command  
 
-    >> vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", writefile=True, outfile='interp.uvfits')         # sample my_model using data (u,v) points and output to interp.uvfits
+    >> vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", outfile='interp.uvfits')         # sample my_model using data (u,v) points and output to interp.uvfits
 
     >> interp_vis = vis_sample(imagefile="my_model.fits", uvfile="data.uvfits")                                     # sample my_model using data (u,v) points, interp_vis stores visibilities
 
     In the second usage, interp_vis is the "raw" output visibility, ie just a numpy array of size [n_visibilities, n_chans]
-
 
     We can also output the caches for faster future usage:
 
     >> interp, gcf_holder = vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", return_gcf = True)          # sample my_model using data (u,v) points, also store the gcf_holder
 
     >> interp2 = vis_sample(imagefile="second_model.fits", gcf_holder = gcf_holder)                                 # sample a second model using the same (u,v) points, this is faster now
+
+    >> interp, gcf_holder, corr_cache = vis_sample(imagefile="my_model.fits", uvfile="data.uvfits", return_gcf = True, return_corr_cache = True)          # sample my_model using data (u,v) points, also store the gcf_holder and corr_cache
+
+    >> interp2 = vis_sample(imagefile="second_model.fits", gcf_holder = gcf_holder, corr_cache=corr_cache)                                 # sample a second model using the same (u,v) points, this is faster now
 
 =================================
 
