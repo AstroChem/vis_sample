@@ -78,7 +78,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
             print "Can only write out when there is an input data file (for header info)"
             return 
 
-    if not (uu and vv or gcf_holder or uvfile):
+    if not ((uu is not None and vv is not None) or gcf_holder or uvfile):
          print "Please supply either a uvfits file to interpolate onto (uvfile), a list of uv points (uu & vv), or a gcf_holder cache"
 
 
