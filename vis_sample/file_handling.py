@@ -38,7 +38,7 @@ def import_data_ms(filename):
     """Imports data from a casa measurement set (ms) and returns Visibility object"""
     try:
         import casac
-    except:
+    except ImportError:
         print "casac was not able to be imported, make sure all dependent packages are installed"
         print "try: conda install -c pkgw casa-python casa-data"
         sys.exit(1)
