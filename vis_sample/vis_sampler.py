@@ -1,4 +1,5 @@
 import numpy as np
+import sys
 from gridding import *
 from classes import *
 from transforms import *
@@ -80,6 +81,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
 
     if not ((uu is not None and vv is not None) or gcf_holder or uvfile):
          print "Please supply either a uvfits file to interpolate onto (uvfile), a list of uv points (uu & vv), or a gcf_holder cache"
+         return
 
 
     ###########################
@@ -88,12 +90,17 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
 
     # if we don't have uu and vv specified, then read them in from the data file
     if uvfile:
-        if "fits" in uvfile:
+        try:
             data_vis = import_data_uvfits(uvfile)
-        elif "ms" in uvfile:
+        except IOError:
+            pass
+     
+        try:
             data_vis = import_data_ms(uvfile)
-        else:
-            print "not a valid data file to interpolate onto"
+        except RuntimeError:
+            print "Not a valid data file for interpolation. Please check that the file is a uvfits file or measurement set"
+            sys.exit(1)
+
         if verbose: print "Read data file to interpolate onto: "+uvfile
 
     # or read from the cache being fed in
