@@ -135,8 +135,4 @@ def interpolate_uv(uu, vv, vis, gcf_holder=None):
         VV = as_strided(VV_chan, shape=(VV_chan.shape[0]-4, VV_chan.shape[1]-4, 5, 5), strides=VV_chan.strides * 2)
         interp_vis[:,f] = np.einsum("...ab->...", gcf_holder.gcf_arr*VV[v0,u0])/gcf_holder.w_arr
 
-    # conjugate the interpolated visibility to make it compatible with ALMA/SMA data
-    # this has to do with an AB/BA antenna/baseline convention
-    interp_vis = np.conj(interp_vis)
-
     return interp_vis, gcf_holder
