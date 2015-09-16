@@ -25,9 +25,9 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
       OR        
         uu, vv - numpy arrays - they need to be in units of lambda (i.e. number of wavelengths)
 
-    mu_RA - right ascension offset from phase center in arcseconds 
+    mu_RA - right ascension offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
 
-    mu_DEC - declination offset from phase center in arcseconds
+    mu_DEC - declination offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
 
     src_distance - distance to source in parsecs - only required for RADMC3D input images
  
@@ -157,6 +157,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
         print "Starting interpolation"
 
 
+
     ###################################
     #   Do the actual interpolation   #
     ###################################
@@ -178,21 +179,40 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
         print "Interpolation complete"
 
 
-    #############################
-    #   Phase shift if needed   #
-    #############################
 
-    if not (mu_RA == 0 and mu_DEC == 0):
-        if verbose: 
-            print "Starting phase shift"
-            t0 = time.time()
+    ###################
+    #   Phase shift   #
+    ###################
+
+    if verbose: 
+        print "Starting phase shift"
+        t0 = time.time()
+
+    # calculate the pixel conversion factors - maybe this should be stored in the image class instead?         
+    delt_ra = np.abs(mod_sky_img.ra[1] - mod_sky_img.ra[0])
+    delt_dec = np.abs(mod_sky_img.dec[1] - mod_sky_img.dec[0])
+
+    # we need to correct for the input image being symmetric, as the DFT expects a half pixel center offset
+    # see http://docs.scipy.org/doc/numpy/reference/generated/numpy.fft.fftfreq.html
+    # additionally shift by mu_RA and mu_DEC
+    interp = phase_shift(interp, gcf_holder.uu, gcf_holder.vv, mu_RA + 0.5*delt_ra, mu_DEC + 0.5*delt_dec)
         
-        interp = phase_shift(interp, gcf_holder.uu, gcf_holder.vv, mu_RA, mu_DEC)
-        
-        if verbose: 
-            t1 = time.time()
-            print "Phase shift time = " + str(t1-t0)
-            print "Phase shift complete"
+    if verbose: 
+        t1 = time.time()
+        print "Phase shift time = " + str(t1-t0)
+        print "Phase shift complete"
+
+
+
+    ###################
+    #   Conjugation   #
+    ###################
+
+    # conjugate the interpolated visibility to make it compatible with ALMA/SMA data
+    # this has to do with an (A, B) vs (B, A) antenna/baseline convention
+    # TODO - add in option to allow for other conventions?
+    interp = np.conj(interp)
+
 
 
     ########################
