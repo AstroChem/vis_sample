@@ -67,7 +67,7 @@ def phase_shift(vis, uu, vv, mu_RA, mu_DEC):
     vis: 2D array of phase-shifted visibilities with shape (n visibilities, m channels)
     """
     # calculate the phase shift for each visibility
-    shifts = np.exp(-2*pi*1.0j * (vv*(-mu_DEC)*arcsec + uu*(-mu_RA)*arcsec))
+    shifts = np.exp(-2*pi*1.0j * (uu*mu_RA*arcsec + vv*mu_DEC*arcsec))
 
     # Go through each visibility and apply the phase shift
     vis = vis * shifts[:,np.newaxis]
