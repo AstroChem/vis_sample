@@ -12,7 +12,6 @@ def import_data_uvfits(filename):
     data = dat[0].data
     dhd = dat[0].header
 
-
     freq_start = dhd['CRVAL4']
     mid_chan_freq = dhd['CRPIX4']
     delt_freq = dhd['CDELT4']
@@ -133,17 +132,24 @@ def import_model_fits(filename):
 
     mhd = mod[0].header
 
+    # the assumption is that the RA and DEC are given in degrees, convert to arcsec 
     npix_ra = mhd['NAXIS1']
     mid_pix_ra = mhd['CRPIX1']
     delt_ra = mhd['CDELT1']
-    if delt_ra < 0:
+    # we need to make sure that RA is increasing with index
+    if (delt_ra < 0):
         mod_data = np.fliplr(mod_data)
+    # half pixel offset is because we need this sampled *as if* the shift has already been applied (see transform())
+    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-0.5))*np.abs(delt_ra)*3600
 
     npix_dec = mhd['NAXIS2']
     mid_pix_dec = mhd['CRPIX2']
     delt_dec = mhd['CDELT2']
-    if delt_dec < 0:
+    # we need to make sure that DEC is increasing with index
+    if (delt_dec < 0):
         mod_data = np.flipud(mod_data)
+    # half pixel offset is because we need this sampled *as if* the shift has already been applied (see transform())
+    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-0.5))*np.abs(delt_dec)*3600
 
     # should be prepared for the case that it is a single channel image and that CRPIX3 and CDELT3 not set
     nchan_vel = mhd['NAXIS3']
@@ -155,12 +161,12 @@ def import_model_fits(filename):
         # remember that this is effectively a dummy placeholder, so this is sketchy but should probably be ok
         mod_vels = [0]
 
-    # the assumption is that the RA and DEC are given in degrees, convert to arcsec 
-    mod_ra = (np.arange(npix_ra)-(mid_pix_ra-1))*delt_ra*3600
-    mod_dec = (np.arange(npix_dec)-(mid_pix_dec-1))*delt_dec*3600
-
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
 
+
+
+# THIS FUNCTION HAS NOT BEEN UPDATED YET TO FIX HALF-PIXEL OFFSET
+# USE AT YOUR OWN RISK
 def import_model_radmc(src_distance, filename):
     """Imports model from a RADMC3D image.out file (ascii format) and returns SkyImage object
 
