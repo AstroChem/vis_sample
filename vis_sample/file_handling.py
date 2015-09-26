@@ -165,8 +165,6 @@ def import_model_fits(filename):
 
 
 
-# THIS FUNCTION HAS NOT BEEN UPDATED YET TO FIX HALF-PIXEL OFFSET
-# USE AT YOUR OWN RISK
 def import_model_radmc(src_distance, filename):
     """Imports model from a RADMC3D image.out file (ascii format) and returns SkyImage object
 
@@ -180,8 +178,9 @@ def import_model_radmc(src_distance, filename):
     im_nx, im_ny = map(int, imagefile.readline().split()) #number of pixels along x and y axes
     nlam = int(imagefile.readline())
     pixsize_x, pixsize_y = map(float,imagefile.readline().split()) #pixel sizes in cm 
-    mod_ra = ((np.arange(im_nx) + 0.5) - im_nx/2.) * pixsize_x/(pc*src_distance*arcsec) #arcseconds
-    mod_dec = ((np.arange(im_ny) + 0.5) - im_ny/2.) * pixsize_y/(pc*src_distance*arcsec) #arcseconds
+    # half pixel offset is because we need this sampled *as if* the shift has already been applied (see transform())
+    mod_ra = (np.arange(im_nx) - im_nx/2.) * pixsize_x/(pc*src_distance*arcsec) #arcseconds
+    mod_dec = (np.arange(im_ny) - im_ny/2.) * pixsize_y/(pc*src_distance*arcsec) #arcseconds
     imvals = ascii.read(filename, format = 'fast_csv', guess = False, data_start = 4, fast_reader = {'use_fast_converter':True})['1']
     mod_lams = imvals[:nlam]
 
