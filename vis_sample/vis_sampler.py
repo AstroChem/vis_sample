@@ -33,7 +33,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
     src_distance - distance to source in parsecs - only required for RADMC3D input images
  
     gcf_holder - (optional) gcf_holder object returned by previous call to vis_sample (see below return_gcf). 
-        If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
+        If you use this option DO NOT feed in a uvfile or uu, vv arrays, this option is intended for batch processing
 
     corr_cache - (optional) 2D corr_cache array output by previous call to vis_sample (see below return_corr_cache).
 
@@ -100,7 +100,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
             print "Can only write out when there is an input data file (to clone for header info)"
             return 
 
-    if gcf_holder & mode=="diff"):
+    if (gcf_holder and mode=="diff"):
         print "diff mode only valid when a uvfile is supplied (to calculate residuals)"
         return 
 
