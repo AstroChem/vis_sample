@@ -7,7 +7,7 @@ from interpolation import interpolate_uv
 from file_handling import *
 import time
 
-def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0, src_distance = None, gcf_holder=None, corr_cache=None, outfile=None, verbose=False, return_gcf=False, return_corr_cache=False):
+def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0, src_distance=None, gcf_holder=None, corr_cache=None, outfile=None, verbose=False, return_gcf=False, return_corr_cache=False):
     """Sample visibilities from a sky-brightness image
 
     vis_sample allows you to sample visibilities from a user-supplied sky-brightness image. 
@@ -15,6 +15,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
     (u,v) grid points can either be supplied by the user, or can be retrieved from a template uvfits file / measurement set.
 
     The results can be output either to a uvfits file or returned back to the user (for scripting)
+
 
     Parameters
     __________
@@ -25,16 +26,16 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
       OR        
         uu, vv - numpy arrays - they need to be in units of lambda (i.e. number of wavelengths)
 
-    mu_RA - right ascension offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
+    mu_RA - (optional, default = 0)right ascension offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
 
-    mu_DEC - declination offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
+    mu_DEC - (optional, default = 0) declination offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
 
     src_distance - distance to source in parsecs - only required for RADMC3D input images
  
     gcf_holder - (optional) gcf_holder object returned by previous call to vis_sample (see below return_gcf). 
                 If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
 
-    corr_cache - (optional parameter) 2D corr_cache array output by previous call to vis_sample (see below return_corr_cache). 
+    corr_cache - (optional) 2D corr_cache array output by previous call to vis_sample (see below return_corr_cache). 
 
     outfile - (optional) name of output file, needs to have either a .uvfits or .ms extension consistent with extension of uvfile
 
