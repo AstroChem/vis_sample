@@ -281,8 +281,14 @@ def export_ms_from_clone(vis, outfile, ms_clone):
         weights[0, xc] = np.mean(vis.wgts, axis=1)
         weights[1, xc] = np.mean(vis.wgts, axis=1)   
 
+    # put the data and weights into the MS
     tb.putcol("DATA", data_array)
     tb.putcol("WEIGHT", weights)
+
+    # if the MS had a corrected column, remove it (this happens with MS's created with simobserve")
+    if ("CORRECTED_DATA" in tb.colnames()):
+        tb.removecols("CORRECTED_DATA") 
+
     tb.flush()
     tb.close()
 
