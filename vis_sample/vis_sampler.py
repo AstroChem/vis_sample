@@ -7,7 +7,7 @@ from interpolation import interpolate_uv
 from file_handling import *
 import time
 
-def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0, src_distance=None, gcf_holder=None, corr_cache=None, outfile=None, verbose=False, return_gcf=False, return_corr_cache=False):
+def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0, src_distance=None, gcf_holder=None, corr_cache=None, mode="interpolate", outfile=None, verbose=False, return_gcf=False, return_corr_cache=False):
     """Sample visibilities from a sky-brightness image
 
     vis_sample allows you to sample visibilities from a user-supplied sky-brightness image. 
@@ -26,16 +26,22 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
       OR        
         uu, vv - numpy arrays - they need to be in units of lambda (i.e. number of wavelengths)
 
-    mu_RA - (optional, default = 0)right ascension offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
+    mu_RA - (optional, default = 0) right ascension offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
 
     mu_DEC - (optional, default = 0) declination offset from phase center in arcseconds (i.e. visibilities are sampled as if the image is centered at (mu_RA, mu_DEC)
 
     src_distance - distance to source in parsecs - only required for RADMC3D input images
  
     gcf_holder - (optional) gcf_holder object returned by previous call to vis_sample (see below return_gcf). 
-                If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
+        If you use this option DO NOT feed in a uvfile or uu, vv arrays. They will be used by default and you'll see no speed increase
 
-    corr_cache - (optional) 2D corr_cache array output by previous call to vis_sample (see below return_corr_cache). 
+    corr_cache - (optional) 2D corr_cache array output by previous call to vis_sample (see below return_corr_cache).
+
+    mode - (optional, default = interpolate) switch between returning the interpolated output ("interpolate") or the residuals when subtracted from the data ("diff")
+        NOTE - all other options are retained, so if using outfile and diff, a residual measurement set will be output
+        diff mode requires an input dataset, so it will NOT work with only a gcf_holder input, and the number of channels must match
+        diff mode is NOT recommended for chi sq calculation in an MCMC code, as the data will be read in for each likelihood function call (slow)
+        A better solution is to use the import functions in file_handling.py to read in the data once, then use the ouput of interpolate mode to calculate chi sq
 
     outfile - (optional) name of output file, needs to have either a .uvfits or .ms extension consistent with extension of uvfile
 
@@ -93,6 +99,10 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
         if not uvfile: 
             print "Can only write out when there is an input data file (to clone for header info)"
             return 
+
+    if gcf_holder & mode=="diff"):
+        print "diff mode only valid when a uvfile is supplied (to calculate residuals)"
+        return 
 
 
     ###########################
@@ -152,7 +162,11 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
 
     # since we clone the data file for write-out, the number of channels need to match the model
     if uvfile and (len(mod_sky_img.freqs)!=len(data_vis.freqs)):
-        print "WARNING: Number of channels in data does not match number of channels in model image. Interpolation can be completed, but model visibilities cannot be written to file."
+        if mode=="diff":
+            print "Number of channels in data does not match number of channels in model image. diff mode cannot continue."
+            return
+        else:
+            print "WARNING: Number of channels in data does not match number of channels in model image. Interpolation can be completed, but model visibilities cannot be written to file."
 
 
 
@@ -251,6 +265,16 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
     # this has to do with an (A, B) vs (B, A) antenna/baseline convention
     # TODO - add in option to allow for other conventions?
     interp = np.conj(interp)
+
+
+
+    #################
+    #   Residuals   #
+    #################
+
+    # if in diff mode, calculate the residuals (still called interp so that the output code is the same either way)
+    if mode=="diff":
+        interp = data_vis.VV - interp
 
 
 
