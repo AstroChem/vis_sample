@@ -136,7 +136,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
             print "Data read time = " + str(t1-t0)
 
     # if we didn't catch anything, something went wrong
-    else:
+    elif uu is None or vv is None:
         print "Please supply either a uvfits file to interpolate onto (uvfile), a list of uv points (uu & vv), or a gcf_holder cache"
         return
 
