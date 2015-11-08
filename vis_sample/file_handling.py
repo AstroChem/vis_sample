@@ -44,6 +44,7 @@ def import_data_ms(filename):
 
     tb = casac.casac.table()
     ms = casac.casac.ms()
+    msmd = casac.casac.msmetadata()
     
     # Use CASA table tools to get columns of UVW, DATA, WEIGHT, etc.
     tb.open(filename)
@@ -55,13 +56,12 @@ def import_data_ms(filename):
     tb.close()
 
     # Use CASA ms tools to get the channel/spw info
-    ms.open(filename)
-    spw_info = ms.getspectralwindowinfo()
-    start_freq = spw_info["0"]["Chan1Freq"]
-    chan_width = spw_info["0"]["ChanWidth"]
-    nchan = spw_info["0"]["NumChan"]
-    rfreq = start_freq + nchan/2.0*chan_width
-    ms.close()
+
+    msmd.open(filename)
+    freqs = msmd.chanfreqs(0)
+    rfreq = freqs[len(freqs)/2] #retrieves frequency near the center of the spw
+    nchans = msmd.nchan(0)
+    msmd.close()
 
 
     # break out the u, v spatial frequencies, convert from m to lambda
@@ -94,8 +94,7 @@ def import_data_ms(filename):
     # toss out the autocorrelation placeholders
     xc = np.where(ant1 != ant2)[0]
 
-    # check if there's only a single channel - THIS IS SHODDILY DONE CURRENTLY, NEED TO MAKE MORE ROBUST
-    if len(data.shape) < 2:
+    if nchans==1:
         data_real = Re[np.newaxis, xc]
         data_imag = Im[np.newaxis, xc]
     else:
@@ -108,7 +107,7 @@ def import_data_ms(filename):
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, (np.arange(data_VV.shape[0])*chan_width + start_freq)/1e6)
+    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, freqs/1e6)
 
 
 # imports model from a FITS file - note the assumptions on dimensions
