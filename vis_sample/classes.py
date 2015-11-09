@@ -9,7 +9,7 @@ from gridding import *
 
 class SkyImage:
     def __init__(self, data, ra, dec, freqs):
-        if len(data.shape) < 3:
+        if len(data.shape) == 2:
             self.data = np.reshape(data, (data.shape[0], data.shape[1], 1))
         else:
             self.data = data

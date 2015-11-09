@@ -19,7 +19,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
 
     Parameters
     __________
-    imagefile : the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC or a RADMC3D image.out file (ascii format)
+    imagefile : the input sky brightness image, needs to be in a valid FITS format with units of DEG for the RA and DEC, a RADMC3D image.out file (ascii format), or a SkyImage object (use with caution)
 
     for uv points use:
         uvfile - uvfits file or measurement set with visibilities that the sky brightness will be interpolated to
@@ -152,13 +152,18 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
         print "Reading model file: "+imagefile
         t0 = time.time()
 
-    if "fits" in imagefile:
-        mod_sky_img = import_model_fits(imagefile)
+    if isinstance(imagefile, SkyImage):
+        mod_sky_img = imagefile
     elif "image.out" in imagefile:
         if src_distance is None:
              print "A source distance in pc needs to be provided in order to process a RADMC3D image file"
              return 
         else: mod_sky_img = import_model_radmc(src_distance, imagefile)
+    elif "fits" in imagefile:
+        mod_sky_img = import_model_fits(imagefile)
+    else:
+        print "Not a valid model image option. Please provide a FITS file, a RADMC3D image file, or a SkyImage object)."
+        return 
 
     # since we clone the data file for write-out, the number of channels need to match the model
     if uvfile and (len(mod_sky_img.freqs)!=len(data_vis.freqs)):
