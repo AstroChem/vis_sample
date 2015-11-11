@@ -44,7 +44,6 @@ def import_data_ms(filename):
 
     tb = casac.casac.table()
     ms = casac.casac.ms()
-    msmd = casac.casac.msmetadata()
     
     # Use CASA table tools to get columns of UVW, DATA, WEIGHT, etc.
     tb.open(filename)
@@ -56,12 +55,17 @@ def import_data_ms(filename):
     tb.close()
 
     # Use CASA ms tools to get the channel/spw info
+    ms.open(filename)
+    spw_info = ms.getspectralwindowinfo()
+    nchan = spw_info["0"]["NumChan"]
+    npol = spw_info["0"]["NumCorr"]
+    ms.close()
 
-    msmd.open(filename)
-    freqs = msmd.chanfreqs(0)
-    rfreq = freqs[len(freqs)/2] #retrieves frequency near the center of the spw
-    nchans = msmd.nchan(0)
-    msmd.close()
+    # Use CASA table tools to get frequencies
+    tb.open(filename+"/SPECTRAL_WINDOW")
+    freqs = tb.getcol("CHAN_FREQ")
+    rfreq = tb.getcol("REF_FREQUENCY")
+    tb.close()
 
 
     # break out the u, v spatial frequencies, convert from m to lambda
@@ -72,7 +76,7 @@ def import_data_ms(filename):
     data = np.squeeze(data)
     weight = np.squeeze(weight)
 
-    if data.shape[0] != 2:    # SHOULD FIND A MORE ROBUST WAY TO CHECK FOR POLARIZATION AVERAGING
+    if npol==1:
         Re = data.real
         Im = data.imag
         wgts = weight
@@ -94,7 +98,8 @@ def import_data_ms(filename):
     # toss out the autocorrelation placeholders
     xc = np.where(ant1 != ant2)[0]
 
-    if nchans==1:
+    # check if there's only a single channel
+    if nchan==1:
         data_real = Re[np.newaxis, xc]
         data_imag = Im[np.newaxis, xc]
     else:
@@ -107,7 +112,7 @@ def import_data_ms(filename):
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, freqs/1e6)
+    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, freqs)
 
 
 # imports model from a FITS file - note the assumptions on dimensions
