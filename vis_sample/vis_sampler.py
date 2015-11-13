@@ -122,13 +122,11 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
         try:
             data_vis = import_data_uvfits(uvfile)
         except IOError:
-            pass
-     
-        try:
-            data_vis = import_data_ms(uvfile)
-        except RuntimeError:
-            print "Not a valid data file for interpolation. Please check that the file is a uvfits file or measurement set"
-            sys.exit(1)
+            try:
+                data_vis = import_data_ms(uvfile)
+            except RuntimeError:
+                print "Not a valid data file for interpolation. Please check that the file is a uvfits file or measurement set"
+                sys.exit(1)
 
         if verbose: 
             t1 = time.time()

@@ -28,7 +28,7 @@ def import_data_uvfits(filename):
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[0])*dat[1].data['ch width'][0]/1e6)
+    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[1])*dat[1].data['ch width'][0])
 
 
 # CASA interfacing code comes from Peter Williams' casa-python and casa-data package
