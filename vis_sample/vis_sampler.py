@@ -169,7 +169,7 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
             print "Number of channels in data does not match number of channels in model image. diff mode cannot continue."
             return
         else:
-            print "WARNING: Number of channels in data does not match number of channels in model image. Interpolation can be completed, but model visibilities cannot be written to file."
+            print "WARNING: Number of channels in data does not match number of channels in model image. Interpolation can be completed, but model visibilities may not be able to be written to file."
 
 
 
@@ -286,19 +286,44 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
     ########################
 
     # simplest case is just writing to a file:
-    if outfile and len(mod_sky_img.freqs)==len(data_vis.freqs):
-        if verbose:
-            print "Writing out to file: "+outfile
-        interp_vis = Visibility(interp, data_vis.uu, data_vis.vv, np.ones(interp.shape), data_vis.freqs)
+    if outfile:
+        # check if our ms file matches the length of the model
+        if len(mod_sky_img.freqs)==len(data_vis.freqs):
+            if verbose:
+                print "Writing out to file: "+outfile
+            interp_vis = Visibility(interp, data_vis.uu, data_vis.vv, np.ones(interp.shape), data_vis.freqs)
 
-        # check to see what type of file we're cloning and exporting
-        if "fits" in outfile:
-            export_uvfits_from_clone(interp_vis, outfile, uvfile)
-        elif "ms" in outfile:
-            export_ms_from_clone(interp_vis, outfile, uvfile)
+            # check to see what type of file we're cloning and exporting
+            if "fits" in outfile:
+                export_uvfits_from_clone(interp_vis, outfile, uvfile)
+            elif "ms" in outfile:
+                export_ms_from_clone(interp_vis, outfile, uvfile)
 
-        # and we're done!
-        return 
+            # and we're done!
+            return 
+
+        # if not, then we'll center and zero-pad the model with a warning
+        elif len(mod_sky_img.freqs) < len(data_vis.freqs):
+            print "WARNING: number of model channels did not match number of channels in ms file. Still writing out to file, centering and zero-padding model: "+outfile
+            
+            # pad interp array
+            npad = len(data_vis.freqs) - len(mod_sky_img.freqs)
+            interp_pad = np.pad(interp, ((0,0), (int(np.floor(npad/2.)), int(np.ceil(npad/2.)))), "constant", constant_values = 0.+0.j)
+
+            interp_vis = Visibility(interp_pad, data_vis.uu, data_vis.vv, np.ones(interp_pad.shape), data_vis.freqs)
+
+            # check to see what type of file we're cloning and exporting
+            if "fits" in outfile:
+                export_uvfits_from_clone(interp_vis, outfile, uvfile)
+            elif "ms" in outfile:
+                export_ms_from_clone(interp_vis, outfile, uvfile)
+
+            # and we're done!
+            return
+    
+        else:
+            print "WARNING: number of model channels greater than number of channels in ms file. Not able to write to file, returning the interpolated data."
+            
 
     # otherwise we're going to return the raw output of the interpolation, possibly with the caches
     if return_gcf:
