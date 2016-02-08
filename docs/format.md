@@ -38,4 +38,46 @@ The visibilities are stored as `(nchan, nvis)` datasets on the HDF5 file.
     imag [Jy]
     weight [1/Jy^2]
 
+# Reading from UVHDF5 
 
+Here is an example snippet of python code that would be useful to read this new file format.
+
+    import h5py
+    import numpy as np
+
+    filename = "data.hdf5"
+
+    fid = h5py.File(filename, "r")
+    freqs = fid["freqs"][:] # [Hz]
+    uu = fid["uu"][:,:] # [kilolam]
+    vv = fid["vv"][:,:] # [kilolam]
+    real = fid["real"][:,:] # [Jy]
+    imag = fid["imag"][:,:] # [Jy]
+    weight = fid["weight"][:,:] #[1/Jy^2]
+    fid.close()
+
+    # Do fancy stuff with visibilities here
+
+
+# Writing to UVHDF5
+
+Here is an example of how to write your dataset to this file format in python.
+
+    # Assume that you have your frequencies stored in a 1D array of length `nfreq`
+    # and that you have your visibilities stored in 2D arrays of size `(nfreq, nvis)`.
+
+    import h5py
+
+    filename = "model.hdf5"
+
+    fid = h5py.File(filename, "w")
+    fid.create_dataset("freqs", (nfreq,), dtype="float64")[:] = freqs # [Hz]
+
+    fid.create_dataset("uu", shape, dtype="float64")[:,:] = uu # [kilolambda]
+    fid.create_dataset("vv", shape, dtype="float64")[:,:] = vv # [kilolambda]
+
+    fid.create_dataset("real", shape, dtype="float64")[:,:] = real # [Jy]
+    fid.create_dataset("imag", shape, dtype="float64")[:,:] = imag # [Jy]
+
+    fid.create_dataset("weight", shape, dtype="float64")[:,:] = weight #[1/Jy^2]
+    fid.close()
