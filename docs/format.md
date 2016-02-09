@@ -66,6 +66,8 @@ Here is an example of how to write your dataset to this file format in python.
     # Assume that you have your frequencies stored in a 1D array of length `nfreq`
     # and that you have your visibilities stored in 2D arrays of size `(nfreq, nvis)`.
 
+    shape = (nfreq, nvis)
+
     import h5py
 
     filename = "model.hdf5"
