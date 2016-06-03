@@ -8,4 +8,4 @@ __email__ = "rloomis@cfa.harvard.edu"
 __status__ = "Development"
 
 
-from vis_sampler import vis_sample
+from .vis_sampler import vis_sample
