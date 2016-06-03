@@ -22,13 +22,20 @@ def import_data_uvfits(filename):
     data_uu = np.squeeze(data['UU'])*restfreq
     data_vv = np.squeeze(data['VV'])*restfreq
 
-    data_real = (data_VV_raw[:,:,0,0] + data_VV_raw[:,:,1,0])/2.
-    data_imag = (data_VV_raw[:,:,0,1] + data_VV_raw[:,:,1,1])/2.
-    data_wgts = (data_VV_raw[:,:,0,2] + data_VV_raw[:,:,1,2])/2.
+    # check for dual polarizations
+    if (data_VV_raw.shape[2] == 2):
+        data_real = (data_VV_raw[:,:,0,0] + data_VV_raw[:,:,1,0])/2.
+        data_imag = (data_VV_raw[:,:,0,1] + data_VV_raw[:,:,1,1])/2.
+        data_wgts = (data_VV_raw[:,:,0,2] + data_VV_raw[:,:,1,2])
+
+    else:
+        data_real = data_VV_raw[:,:,0,0]
+        data_imag = data_VV_raw[:,:,0,1]
+        data_wgts = data_VV_raw[:,:,0,2]
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[1])*dat[1].data['ch width'][0])
+    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, freq_start + np.arange(data_VV.shape[1])*dat[1].data['ch width'][0])
 
 
 # CASA interfacing code comes from Peter Williams' casa-python and casa-data package
