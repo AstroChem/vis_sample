@@ -15,6 +15,7 @@ def import_data_uvfits(filename):
     freq_start = dhd['CRVAL4']
     mid_chan_freq = dhd['CRPIX4']
     delt_freq = dhd['CDELT4']
+    npol = dhd['NAXIS3']
 
     restfreq = freq_start + (mid_chan_freq-1)*delt_freq
 
@@ -23,7 +24,7 @@ def import_data_uvfits(filename):
     data_vv = np.squeeze(data['VV'])*restfreq
 
     # check for dual polarizations
-    if (data_VV_raw.shape[2] == 2):
+    if (npol == 2):
         data_real = (data_VV_raw[:,:,0,0] + data_VV_raw[:,:,1,0])/2.
         data_imag = (data_VV_raw[:,:,0,1] + data_VV_raw[:,:,1,1])/2.
         data_wgts = (data_VV_raw[:,:,0,2] + data_VV_raw[:,:,1,2])
@@ -233,14 +234,25 @@ def export_uvfits_from_clone(vis, outfile, uvfits_clone):
     """
     clone = pyfits.open(uvfits_clone)
     clone_data = clone[0].data
+    clone_hd = clone[0].header
 
-    data_array = np.zeros([vis.VV.shape[0], vis.VV.shape[1], 2, 3])
-    data_array[:,:,0,0] = np.real(vis.VV)
-    data_array[:,:,1,0] = np.real(vis.VV)
-    data_array[:,:,0,1] = np.imag(vis.VV)
-    data_array[:,:,1,1] = np.imag(vis.VV)
-    data_array[:,:,0,2] = vis.wgts
-    data_array[:,:,1,2] = vis.wgts
+    npol = clone_hd['NAXIS3']
+
+    # check for dual polarizations
+    if (npol == 2):
+        data_array = np.zeros([vis.VV.shape[0], vis.VV.shape[1], 2, 3])
+        data_array[:,:,0,0] = np.real(vis.VV)
+        data_array[:,:,1,0] = np.real(vis.VV)
+        data_array[:,:,0,1] = np.imag(vis.VV)
+        data_array[:,:,1,1] = np.imag(vis.VV)
+        data_array[:,:,0,2] = vis.wgts
+        data_array[:,:,1,2] = vis.wgts
+
+    else:
+        data_array = np.zeros([vis.VV.shape[0], vis.VV.shape[1], 2, 3])
+        data_array[:,:,0,0] = np.real(vis.VV)
+        data_array[:,:,0,1] = np.imag(vis.VV)
+        data_array[:,:,0,2] = vis.wgts
 
     clone_data['data'] = np.expand_dims(np.expand_dims(np.expand_dims(data_array, 1),1),1)
 
