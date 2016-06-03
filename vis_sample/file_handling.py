@@ -114,7 +114,7 @@ def import_data_ms(filename):
         flags = flags[:,xc]
         # if the majority of points in any channel are flagged, it probably means someone flagged an entire channel - spit warning
         if np.mean(flags.all(axis=0)) < 0.5:
-            print "WARNING: Over half of the (u,v) points in at least one channel are marked as flagged. If you didn't expect this, it is likely due to having an entire channel flagged in the ms. Please double check this and be careful if model fitting or using diff mode. Do not trust results for those channel(s), although all other unflagged channels should be fine."
+            print "WARNING: Over half of the (u,v) points in at least one channel are marked as flagged. If you didn't expect this, it is likely due to having an entire channel flagged in the ms. Please double check this and be careful if model fitting or using diff mode."
         # collapse flags to single channel, because weights are not currently channelized
         flags = flags.any(axis=0)
 
@@ -125,10 +125,11 @@ def import_data_ms(filename):
     data_VV = data_real+data_imag*1.0j
 
     # now remove all flagged data (we assume the user doesn't want to interpolate for these points)
-    data_wgts = data_wgts[np.logical_not(flags)]
-    data_uu = data_uu[np.logical_not(flags)]
-    data_vv = data_vv[np.logical_not(flags)]
-    data_VV = data_VV[:,np.logical_not(flags)]
+    # commenting this out for now, but leaving infrastructure in place if desired later
+    #data_wgts = data_wgts[np.logical_not(flags)]
+    #data_uu = data_uu[np.logical_not(flags)]
+    #data_vv = data_vv[np.logical_not(flags)]
+    #data_VV = data_VV[:,np.logical_not(flags)]
 
     return Visibility(data_VV.T, data_uu, data_vv, data_wgts, freqs)
 
