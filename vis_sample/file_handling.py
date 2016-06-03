@@ -15,6 +15,7 @@ def import_data_uvfits(filename):
     freq_start = dhd['CRVAL4']
     mid_chan_freq = dhd['CRPIX4']
     delt_freq = dhd['CDELT4']
+    npol = dhd['NAXIS3']
 
     restfreq = freq_start + (mid_chan_freq-1)*delt_freq
 
@@ -22,13 +23,20 @@ def import_data_uvfits(filename):
     data_uu = np.squeeze(data['UU'])*restfreq
     data_vv = np.squeeze(data['VV'])*restfreq
 
-    data_real = (data_VV_raw[:,:,0,0] + data_VV_raw[:,:,1,0])/2.
-    data_imag = (data_VV_raw[:,:,0,1] + data_VV_raw[:,:,1,1])/2.
-    data_wgts = (data_VV_raw[:,:,0,2] + data_VV_raw[:,:,1,2])/2.
+    # check for dual polarizations
+    if (npol == 2):
+        data_real = (data_VV_raw[:,:,0,0] + data_VV_raw[:,:,1,0])/2.
+        data_imag = (data_VV_raw[:,:,0,1] + data_VV_raw[:,:,1,1])/2.
+        data_wgts = (data_VV_raw[:,:,0,2] + data_VV_raw[:,:,1,2])
+
+    else:
+        data_real = data_VV_raw[:,:,0,0]
+        data_imag = data_VV_raw[:,:,0,1]
+        data_wgts = data_VV_raw[:,:,0,2]
 
     data_VV = data_real+data_imag*1.0j
 
-    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, np.arange(data_VV.shape[1])*dat[1].data['ch width'][0])
+    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, freq_start + np.arange(data_VV.shape[1])*dat[1].data['ch width'][0])
 
 
 # CASA interfacing code comes from Peter Williams' casa-python and casa-data package
@@ -112,9 +120,11 @@ def import_data_ms(filename):
         data_real = Re[:,xc]
         data_imag = Im[:,xc]
         flags = flags[:,xc]
+
         # if the majority of points in any channel are flagged, it probably means someone flagged an entire channel - spit warning
-        if np.mean(flags.all(axis=0)) < 0.5:
+        if np.mean(flags.all(axis=0)) > 0.5:
             print "WARNING: Over half of the (u,v) points in at least one channel are marked as flagged. If you didn't expect this, it is likely due to having an entire channel flagged in the ms. Please double check this and be careful if model fitting or using diff mode."
+
         # collapse flags to single channel, because weights are not currently channelized
         flags = flags.any(axis=0)
 
@@ -227,14 +237,25 @@ def export_uvfits_from_clone(vis, outfile, uvfits_clone):
     """
     clone = pyfits.open(uvfits_clone)
     clone_data = clone[0].data
+    clone_hd = clone[0].header
 
-    data_array = np.zeros([vis.VV.shape[0], vis.VV.shape[1], 2, 3])
-    data_array[:,:,0,0] = np.real(vis.VV)
-    data_array[:,:,1,0] = np.real(vis.VV)
-    data_array[:,:,0,1] = np.imag(vis.VV)
-    data_array[:,:,1,1] = np.imag(vis.VV)
-    data_array[:,:,0,2] = vis.wgts
-    data_array[:,:,1,2] = vis.wgts
+    npol = clone_hd['NAXIS3']
+
+    # check for dual polarizations
+    if (npol == 2):
+        data_array = np.zeros([vis.VV.shape[0], vis.VV.shape[1], 2, 3])
+        data_array[:,:,0,0] = np.real(vis.VV)
+        data_array[:,:,1,0] = np.real(vis.VV)
+        data_array[:,:,0,1] = np.imag(vis.VV)
+        data_array[:,:,1,1] = np.imag(vis.VV)
+        data_array[:,:,0,2] = vis.wgts
+        data_array[:,:,1,2] = vis.wgts
+
+    else:
+        data_array = np.zeros([vis.VV.shape[0], vis.VV.shape[1], 2, 3])
+        data_array[:,:,0,0] = np.real(vis.VV)
+        data_array[:,:,0,1] = np.imag(vis.VV)
+        data_array[:,:,0,2] = vis.wgts
 
     clone_data['data'] = np.expand_dims(np.expand_dims(np.expand_dims(data_array, 1),1),1)
 
