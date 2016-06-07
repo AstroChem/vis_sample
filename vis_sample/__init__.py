@@ -3,7 +3,7 @@ This module fourier transforms a sky brightness image and then interpolates to a
 """
 
 __author__ = "Ryan Loomis"
-__version__ = "0.1"
+__version__ = "0.2"
 __email__ = "rloomis@cfa.harvard.edu"
 __status__ = "Development"
 
