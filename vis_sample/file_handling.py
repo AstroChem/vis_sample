@@ -104,8 +104,9 @@ def import_data_ms(filename):
         flags = flags[0,:]*flags[1,:]
 
         # - weighted averages
-        Re = (Re_xx*weight_xx + Re_yy*weight_yy) / (weight_xx + weight_yy)
-        Im = (Im_xx*weight_xx + Im_yy*weight_yy) / (weight_xx + weight_yy)
+        with np.errstate(divide='ignore', invalid='ignore'):
+            Re = np.where((weight_xx + weight_yy) != 0, (Re_xx*weight_xx + Re_yy*weight_yy) / (weight_xx + weight_yy), 0.)
+            Im = np.where((weight_xx + weight_yy) != 0, (Im_xx*weight_xx + Im_yy*weight_yy) / (weight_xx + weight_yy), 0.)
         wgts = (weight_xx + weight_yy)
 
     # toss out the autocorrelation placeholders
