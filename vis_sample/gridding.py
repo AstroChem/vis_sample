@@ -4,14 +4,14 @@
 # to the FFT to correct for the future convolution of the gcf (ie corrfun is the FT'd inverse)
 
 import numpy as np
-from scipy import weave
-from scipy.weave import converters
+import weave
+from weave import converters
 import time
 
 
 
 # First we definte the prolate spheroidal functions used for calculating the gcf and corrfun.
-# This funtion definition comes from Schwab's derivations
+# This function definition comes from Schwab's derivations
 
 def spheroid_weave(eta=0):
     """

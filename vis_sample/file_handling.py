@@ -240,7 +240,7 @@ def export_ms_from_clone(vis, outfile, ms_clone):
 
     tb = casac.casac.table()
     
-    # Use CASA table tools to fill new DATA and WEIGHT
+    # Use CASA table tools to fill new DATA 
     tb.open(outfile, nomodify=False)
 
     # we need to pull the antennas and find where the autocorrelation values are and aren't
@@ -274,15 +274,10 @@ def export_ms_from_clone(vis, outfile, ms_clone):
         # fill the ac with 0's
         data_array[0, :, ac] = 0 + 0j
         data_array[1, :, ac] = 0 + 0j
-
-        # now do the same with the weights
-        weights = np.zeros((2, ant1.shape[0]))
-        weights[0, xc] = np.mean(vis.wgts, axis=1)
-        weights[1, xc] = np.mean(vis.wgts, axis=1)   
+ 
 
     # put the data and weights into the MS
     tb.putcol("DATA", data_array)
-    tb.putcol("WEIGHT", weights)
 
     # if the MS had a corrected column, remove it (this happens with MS's created with simobserve")
     if ("CORRECTED_DATA" in tb.colnames()):
