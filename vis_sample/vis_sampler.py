@@ -174,6 +174,23 @@ def vis_sample(imagefile=None, uvfile=None, uu=None, vv=None, mu_RA=0, mu_DEC=0,
             print "WARNING: Number of channels in data does not match number of channels in model image. Interpolation can be completed, but model visibilities cannot be written to file."
 
 
+    #check that image resolution and uv coords are appropriate for one another
+    if gcf_holder:
+        maxuv = np.max((np.abs(gcf_holder.uu), np.abs(gcf_holder.vv)))
+    elif uvfile:
+        maxuv = np.max((np.abs(data_vis.uu), np.abs(data_vis.vv)))
+    else:
+        maxuv = np.max((uu,vv))
+
+    delt_l = np.abs(mod_sky_img.ra[1]-mod_sky_img.ra[0])
+ 
+    delt_m = np.abs(mod_sky_img.dec[1]-mod_sky_img.dec[0])
+
+    if maxuv >1/(2.*np.max((delt_l, delt_m)))*206265:
+        print "Image pixel resolution is not sufficient to interpolate longest baselines. Current resolution is %.5e arcsec. Minimum resolution is %.5e arcsec." % (np.max((delt_l, delt_m)),0.5/maxuv*206265)
+        sys.exit()
+
+
 
 
     #################################
