@@ -4,8 +4,6 @@
 # to the FFT to correct for the future convolution of the gcf (ie corrfun is the FT'd inverse)
 
 import numpy as np
-from scipy import weave
-from scipy.weave import converters
 import time
 
 
@@ -13,7 +11,7 @@ import time
 # First we definte the prolate spheroidal functions used for calculating the gcf and corrfun.
 # This funtion definition comes from Schwab's derivations
 
-def spheroid_weave(eta=0):
+def spheroid(eta=0):
     """
     Calculate value of spheroidal function used for gridding convolution function at a given value eta
 
@@ -29,26 +27,17 @@ def spheroid_weave(eta=0):
     out: float. Value of spheroidal function at eta
     
     """
-    nn = eta**2 - 1**2
+    n = eta**2 - 1**2
 
-    if np.abs(eta) < 1.0000000000001:
-        support = """
-            #include <math.h>
-            #include <stdlib.h>
-            """
-        code = """
-            double n = (double) nn;
-            return_val = (0.01624782*pow(n,6) + -0.05350728*pow(n,5) + 0.1464354*pow(n,4) + -0.2347118*pow(n,3) + 0.2180684*pow(n,2) + -0.09858686*n + 0.01466325)/(0.2177793*n + 1);
-        """
-        return weave.inline(code, arg_names=['nn'], support_code = support, libraries = ['m'], type_converters=converters.blitz)
-
+    if abs(eta) < 1.0000000000001:
+        return (0.01624782*pow(n,6) + -0.05350728*pow(n,5) + 0.1464354*pow(n,4) + -0.2347118*pow(n,3) + 0.2180684*pow(n,2) + -0.09858686*n + 0.01466325)/(0.2177793*n + 1)
     else:
         return 1e30
 
 
 # now we define the functions that will calculate the gcf
 def gcf_single(eta):
-    return (abs(1 - eta**2))*spheroid_weave(eta)
+    return (abs(1 - eta**2))*spheroid(eta)
 
 def gcffun(etas):
     return [gcf_single(eta) for eta in etas]
@@ -94,7 +83,7 @@ def apply_corrfun(img, corr_cache=None):
             maxdec = abs(del_dec) * ndec/2
             eta_y = (img.dec)/maxdec
 
-        spheroid_vectorized = np.vectorize(spheroid_weave)
+        spheroid_vectorized = np.vectorize(spheroid)
         corr_x = 1.0/spheroid_vectorized(eta_x)
         corr_y = 1.0/spheroid_vectorized(eta_y)
 
