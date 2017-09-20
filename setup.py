@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# Copyright 2014-2016 Ryan Loomis <rloomis@cfa.harvard.edu> and collaborators.
+# Copyright 2014-2017 Ryan Loomis <rloomis@cfa.harvard.edu>, J. Huang, and I. Czekala.
 # Licensed under the MIT License.
 
 # I don't use the ez_setup module because it causes us to automatically build
@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup (
     name = 'vis_sample',
-    version = '0.2.1',
+    version = '0.2.2',
 
     # This package actually *is* zip-safe, but I've run into issues with
     # installing it as a Zip: in particular, the install sometimes fails with
@@ -27,8 +27,8 @@ setup (
     # much impossible to do science without Numpy.
     install_requires = [
         'python >= 2.7.0',
-        'numpy >= 1.10.4',
-        'scipy >= 0.16.0',
+        'numpy >= 1.13.1',
+        'scipy >= 0.19.1',
         'astropy >= 1.0.0'
     ],
 
