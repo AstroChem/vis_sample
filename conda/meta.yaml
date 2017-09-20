@@ -1,0 +1,33 @@
+# Copyright 2014-2015 Peter Williams and collaborators.
+# This file is licensed under a 3-clause BSD license; see LICENSE.txt.
+
+# This package is merged into the main distribution in Python >= 3.4.
+
+package:
+  name: vis_sample
+  version: "0.2.1"
+
+source:
+  fn: vis_sample-0.2.1.tar.gz
+  url: https://pypi.python.org/packages/3e/f9/9e83a2afddcd10177d505a5ce8ea4c0e468cf27d5f31502edd12b0932522/vis_sample-0.2.1.tar.gz
+  md5: 8752b5e06e3b7799ac1fa2a45b64b4ab
+
+build:
+  number: 0
+
+requirements:
+  build:
+    - python
+    - numpy
+    - scipy
+    - astropy
+  run:
+    - python
+    - numpy
+    - scipy
+    - astropy
+
+about:
+  home: https://github.com/AstroChem/vis_sample
+  license: MIT License
+  summary: Visibility sampler
