@@ -188,12 +188,13 @@ def import_model_fits(filename):
     # should be prepared for the case that it is a single channel image and that CRPIX3 and CDELT3 not set
     nchan_vel = mhd['NAXIS3']
     try:
-        mid_chan_vel = mhd['CRPIX3']
+        mid_chan_vel = mhd['CRVAL3']
+        mid_chan = mhd['CRPIX3']
         delt_vel = mhd['CDELT3']
-        mod_vels = (np.arange(nchan_vel)-(mid_chan_vel-1))*delt_vel
+        mod_vels = (np.arange(nchan_vel)-(mid_chan-1))*delt_vel + mid_chan_vel
     except:
         # remember that this is effectively a dummy placeholder, so this is sketchy but should probably be ok
-        mod_vels = [0]
+        mod_vels = [0] 
 
     return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
 
