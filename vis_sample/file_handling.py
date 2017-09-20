@@ -135,6 +135,10 @@ def import_data_ms(filename):
 
     data_VV = data_real+data_imag*1.0j
 
+    #warning that flagged data was imported
+    if np.any(flags):
+        print "WARNING: Flagged data was imported. Visibility interpolation can proceed normally, but be careful with chi^2 calculations."
+
     # now remove all flagged data (we assume the user doesn't want to interpolate for these points)
     # commenting this out for now, but leaving infrastructure in place if desired later
     #data_wgts = data_wgts[np.logical_not(flags)]

@@ -12,10 +12,10 @@ class SkyImage:
         if len(data.shape) == 2:
             self.data = np.reshape(data, (data.shape[0], data.shape[1], 1))
         else:
-            self.data = data
-        self.ra = ra
-        self.dec = dec
-        self.freqs = np.array(freqs)
+            self.data = data # [Jy/pixel] 
+        self.ra = ra # [arcsec]
+        self.dec = dec # [arcsec]
+        self.freqs = np.array(freqs) # [Hz]
 
 
 
@@ -25,11 +25,11 @@ class SkyImage:
 
 class Visibility:
     def __init__(self, VV, uu, vv, wgts, freqs):
-        self.VV = VV
-        self.uu = uu
-        self.vv = vv
-        self.wgts = wgts
-        self.freqs = np.array(freqs)
+        self.VV = VV # [Jy]
+        self.uu = uu # [lambda]
+        self.vv = vv # [lambda]
+        self.wgts = wgts # [Jy^-2]
+        self.freqs = np.array(freqs) # [Hz]
 
 
 
@@ -39,10 +39,10 @@ class Visibility:
 
 class ModelVisibility:
     def __init__(self, VV, uu, vv, freqs):
-        self.VV = VV
-        self.uu = uu
-        self.vv = vv
-        self.freqs = np.array(freqs)
+        self.VV = VV # [Jy]
+        self.uu = uu # [lambda]
+        self.vv = vv # [lambda]
+        self.freqs = np.array(freqs) # [Hz]
 
 
 # The GcfHolder allows us to cache the several values for future calls
@@ -54,5 +54,5 @@ class GcfHolder:
         self.index_arr = index_arr
         self.gcf_arr = gcf_arr
         self.w_arr = w_arr
-        self.uu = uu
-        self.vv = vv
+        self.uu = uu # [lambda]
+        self.vv = vv # [lambda]
