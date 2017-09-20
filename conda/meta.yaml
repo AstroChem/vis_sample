@@ -10,7 +10,7 @@ package:
 source:
   fn: vis_sample-0.2.2.tar.gz
   url: https://files.pythonhosted.org/packages/ef/1f/65381d6dc19cefeeeb4888c1b4723abb06cc54d0950b9303d443023b5e64/vis_sample-0.2.2.tar.gz
-  md5: 5f994728edbccf3514bb8cb4cad4b5e3e9d12e4170b7cbcc0ee0e1606253634f
+  md5: b18b70796ce80757cf3084cb1cccdd8b
 
 build:
   number: 0
