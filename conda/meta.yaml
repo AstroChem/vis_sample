@@ -9,8 +9,8 @@ package:
 
 source:
   fn: vis_sample-0.2.2.tar.gz
-  url: https://pypi.python.org/packages/3e/f9/9e83a2afddcd10177d505a5ce8ea4c0e468cf27d5f31502edd12b0932522/vis_sample-0.2.1.tar.gz
-  md5: 8752b5e06e3b7799ac1fa2a45b64b4ab
+  url: https://files.pythonhosted.org/packages/ef/1f/65381d6dc19cefeeeb4888c1b4723abb06cc54d0950b9303d443023b5e64/vis_sample-0.2.2.tar.gz
+  md5: 5f994728edbccf3514bb8cb4cad4b5e3e9d12e4170b7cbcc0ee0e1606253634f
 
 build:
   number: 0
