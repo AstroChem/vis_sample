@@ -1,33 +1,49 @@
-# Copyright 2014-2015 Peter Williams and collaborators.
-# This file is licensed under a 3-clause BSD license; see LICENSE.txt.
-
-# This package is merged into the main distribution in Python >= 3.4.
+{% set name = "vis_sample" %}
+{% set version = "0.2.2" %}
+{% set hash_type = "sha256" %}
+{% set hash_value = "5f994728edbccf3514bb8cb4cad4b5e3e9d12e4170b7cbcc0ee0e1606253634f" %}
 
 package:
-  name: vis_sample
-  version: "0.2.2"
+  name: '{{ name|lower }}'
+  version: '{{ version }}'
 
 source:
-  fn: vis_sample-0.2.2.tar.gz
-  url: https://files.pythonhosted.org/packages/ef/1f/65381d6dc19cefeeeb4888c1b4723abb06cc54d0950b9303d443023b5e64/vis_sample-0.2.2.tar.gz
-  md5: b18b70796ce80757cf3084cb1cccdd8b
+  fn: '{{ name }}-{{ version }}.tar.gz'
+  url: https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz
+  '{{ hash_type }}': '{{ hash_value }}'
 
 build:
   number: 0
+  script: python setup.py install  --single-version-externally-managed --record=record.txt
 
 requirements:
   build:
     - python
-    - numpy
-    - scipy
-    - astropy
+    - setuptools
+    - python >=2.7.0
+    - numpy >=1.13.1
+    - scipy >=0.19.1
+    - astropy >=1.0.0
   run:
     - python
-    - numpy
-    - scipy
-    - astropy
+    - python >=2.7.0
+    - numpy >=1.13.1
+    - scipy >=0.19.1
+    - astropy >=1.0.0
+
+test:
+  imports:
+    - vis_sample
 
 about:
   home: https://github.com/AstroChem/vis_sample
   license: MIT License
+  license_family: MIT
+  license_file: ''
   summary: Visibility sampler
+  description: "This package fourier transforms a sky brightness image and then interpolates to arbitrary uv points\n    "
+  doc_url: ''
+  dev_url: ''
+
+extra:
+  recipe-maintainers: ''
