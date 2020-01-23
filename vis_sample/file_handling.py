@@ -190,8 +190,8 @@ def import_model_fits(filename):
     mod_dec = (np.arange(npix_dec)-(mid_pix_dec-0.5))*np.abs(delt_dec)*3600
 
     # should be prepared for the case that it is a single channel image and that CRPIX3 and CDELT3 not set
-    nchan_vel = mhd['NAXIS3']
     try:
+        nchan_vel = mhd['NAXIS3']
         mid_chan_vel = mhd['CRVAL3']
         mid_chan = mhd['CRPIX3']
         delt_vel = mhd['CDELT3']
