@@ -46,8 +46,8 @@ def import_data_ms(filename):
     try:
         import casac
     except ImportError:
-        print "casac was not able to be imported, make sure all dependent packages are installed"
-        print "try: conda install -c pkgw casa-python casa-data"
+        print("casac was not able to be imported, make sure all dependent packages are installed")
+        print("try: conda install -c pkgw casa-python casa-data")
         sys.exit(1)
 
     tb = casac.casac.table()
@@ -124,7 +124,7 @@ def import_data_ms(filename):
 
         # if the majority of points in any channel are flagged, it probably means someone flagged an entire channel - spit warning
         if np.mean(flags.all(axis=0)) > 0.5:
-            print "WARNING: Over half of the (u,v) points in at least one channel are marked as flagged. If you didn't expect this, it is likely due to having an entire channel flagged in the ms. Please double check this and be careful if model fitting or using diff mode."
+            print("WARNING: Over half of the (u,v) points in at least one channel are marked as flagged. If you didn't expect this, it is likely due to having an entire channel flagged in the ms. Please double check this and be careful if model fitting or using diff mode.")
 
         # collapse flags to single channel, because weights are not currently channelized
         flags = flags.any(axis=0)
@@ -137,7 +137,7 @@ def import_data_ms(filename):
 
     #warning that flagged data was imported
     if np.any(flags):
-        print "WARNING: Flagged data was imported. Visibility interpolation can proceed normally, but be careful with chi^2 calculations."
+        print("WARNING: Flagged data was imported. Visibility interpolation can proceed normally, but be careful with chi^2 calculations.")
 
     # now remove all flagged data (we assume the user doesn't want to interpolate for these points)
     # commenting this out for now, but leaving infrastructure in place if desired later
@@ -266,7 +266,7 @@ def export_uvfits_from_clone(vis, outfile, uvfits_clone):
     clone_data['data'] = np.expand_dims(np.expand_dims(np.expand_dims(data_array, 1),1),1)
 
     clone.writeto(outfile)
-    print "Wrote " + outfile
+    print("Wrote " + outfile)
 
 
 # ONLY CAN CLONE MS
@@ -283,8 +283,8 @@ def export_ms_from_clone(vis, outfile, ms_clone):
     try:
         import casac
     except ImportError:
-        print "casac was not able to be imported, make sure all dependent packages are installed"
-        print "try: conda install -c pkgw casa-python casa-data"
+        print("casac was not able to be imported, make sure all dependent packages are installed")
+        print("try: conda install -c pkgw casa-python casa-data")
         sys.exit(1)
 
     shutil.copytree(ms_clone, outfile)
@@ -342,4 +342,4 @@ def export_ms_from_clone(vis, outfile, ms_clone):
     tb.flush()
     tb.close()
 
-    print "Wrote " + outfile
+    print("Wrote " + outfile)

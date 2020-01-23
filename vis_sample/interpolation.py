@@ -65,8 +65,8 @@ def create_gcf_holder(uu, vv, vis):
     index_arr = np.transpose(np.array((iu0, iv0)))
 
     # 2. Find the relative distance to this point (should be -0.5 du/v < val < 0.5 du/v) 
-    u0 = uu - vis.uu[iu0]
-    v0 = vv - vis.vv[iv0]
+    u0 = uu - vis.uu[iu0.astype(int)]
+    v0 = vv - vis.vv[iv0.astype(int)]
 
     # 3. Now we take the relative distance and find the nearest dense grid point
     iu0_grid = np.ones(nu).astype(int)*500
@@ -79,8 +79,8 @@ def create_gcf_holder(uu, vv, vis):
         iv0_grid = 500-(1001*v0/dv).astype(int)
 
     # 4. Pull the gcf vals for the nearest 5 pixels around this dense grid point
-    uw = dense_grid_gcf[iu0_grid,:]
-    vw = dense_grid_gcf[iv0_grid,:]
+    uw = dense_grid_gcf[iu0_grid.astype(int),:]
+    vw = dense_grid_gcf[iv0_grid.astype(int),:]
 
     if npix_u == 5:
         uw = np.array([[0,0,1,0,0]]).astype(float)
