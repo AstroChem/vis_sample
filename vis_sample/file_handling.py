@@ -44,14 +44,14 @@ def import_data_uvfits(filename):
 def import_data_ms(filename):
     """Imports data from a casa measurement set (ms) and returns Visibility object"""
     try:
-        import casac
+        import casatools
     except ImportError:
-        print("casac was not able to be imported, make sure all dependent packages are installed")
-        print("try: conda install -c pkgw casa-python casa-data")
+        print("casatools was not able to be imported, make sure all dependent packages are installed")
+        print("try instructions at https://casa.nrao.edu/casadocs/casa-5.6.0/introduction/casa6-installation-and-usage")
         sys.exit(1)
 
-    tb = casac.casac.table()
-    ms = casac.casac.ms()
+    tb = casatools.table()
+    ms = casatools.ms()
     
     # Use CASA table tools to get columns of UVW, DATA, WEIGHT, etc.
     tb.open(filename)
@@ -270,7 +270,6 @@ def export_uvfits_from_clone(vis, outfile, uvfits_clone):
 
 
 # ONLY CAN CLONE MS
-# TODO - FIGURE OUT HOW TO WRITE FROM SCRATCH
 def export_ms_from_clone(vis, outfile, ms_clone):
     """Exports model visibilities to measurement set
 
@@ -281,15 +280,15 @@ def export_ms_from_clone(vis, outfile, ms_clone):
     ms_clone: Input measurement set being cloned
     """
     try:
-        import casac
+        import casatools
     except ImportError:
-        print("casac was not able to be imported, make sure all dependent packages are installed")
-        print("try: conda install -c pkgw casa-python casa-data")
+        print("casatools was not able to be imported, make sure all dependent packages are installed")
+        print("try instructions at https://casa.nrao.edu/casadocs/casa-5.6.0/introduction/casa6-installation-and-usage")
         sys.exit(1)
 
     shutil.copytree(ms_clone, outfile)
 
-    tb = casac.casac.table()
+    tb = casatools.table()
     
     # Use CASA table tools to fill new DATA and WEIGHT
     tb.open(outfile, nomodify=False)
