@@ -74,7 +74,10 @@ def import_data_ms(filename):
     # Use CASA table tools to get frequencies
     tb.open(filename+"/SPECTRAL_WINDOW")
     freqs = tb.getcol("CHAN_FREQ")
-    rfreq = tb.getcol("REF_FREQUENCY")
+    tb.close()
+
+    tb.open(filename+"/SOURCE")
+    rfreq = tb.getcol("REST_FREQUENCY")[0][0]
     tb.close()
 
 
@@ -146,15 +149,22 @@ def import_data_ms(filename):
     #data_vv = data_vv[np.logical_not(flags)]
     #data_VV = data_VV[:,np.logical_not(flags)]
 
-    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, freqs)
+    return Visibility(data_VV.T, data_uu, data_vv, data_wgts, freqs, rfreq)
 
 
 # imports model from a FITS file - note the assumptions on dimensions
-def import_model_fits(filename):
+def import_model_fits(filename, mod_rfreq=None):
     """Imports model from a FITS file and returns SkyImage object
 
     Note the assumption that RA and DEC are given in degrees (converted to arcsec when returned in SkyImage object)
+
+    Parameters
+    __________
+    filename: FITS file, should have CTYPE3 = 'FREQ', not 'VEL'
+    mod_rfreq: (optional) rest frequency
     """
+    # TODO: make flexible for VEL and FREQ
+
     mod = pyfits.open(filename)
 
     # first sterilize the input and remove any dummy channel or polarization dimensions
@@ -191,26 +201,27 @@ def import_model_fits(filename):
 
     # should be prepared for the case that it is a single channel image and that CRPIX3 and CDELT3 not set
     try:
-        nchan_vel = mhd['NAXIS3']
-        mid_chan_vel = mhd['CRVAL3']
+        nchan_freq = mhd['NAXIS3']
+        mid_chan_freq = mhd['CRVAL3']
         mid_chan = mhd['CRPIX3']
-        delt_vel = mhd['CDELT3']
-        mod_vels = (np.arange(nchan_vel)-(mid_chan-1))*delt_vel + mid_chan_vel
+        delt_freq = mhd['CDELT3']
+        mod_freqs = (np.arange(nchan_freq)-(mid_chan-1))*delt_freq + mid_chan_freq
     except:
         # remember that this is effectively a dummy placeholder, so this is sketchy but should probably be ok
-        mod_vels = [0] 
+        mod_freqs = [0] 
 
-    return SkyImage(mod_data, mod_ra, mod_dec, mod_vels)
+    return SkyImage(mod_data, mod_ra, mod_dec, mod_freqs, mod_rfreq)
 
 
 
-def import_model_radmc(src_distance, filename):
+def import_model_radmc(src_distance, filename, mod_rfreq=None):
     """Imports model from a RADMC3D image.out file (ascii format) and returns SkyImage object
 
     Parameters
     __________
     src_distance: Distance to source in parsecs
     filename: RADMC3d image file (should end in ".out")
+    mod_rfreq: (optional) rest frequency
     """
     imagefile = open(filename)
     iformat = imagefile.readline()
@@ -227,11 +238,10 @@ def import_model_radmc(src_distance, filename):
     pixsize = pixsize_x*pixsize_y/(src_distance*pc)**2 #pixel size in steradians
     mod_data = np.rollaxis(np.reshape(imvals[nlam:],[nlam, im_ny, im_nx]),0,3)*pixsize*10**23
 
-    return SkyImage(np.fliplr(mod_data).astype('float64'), mod_ra, mod_dec, mod_lams)
+    return SkyImage(np.fliplr(mod_data).astype('float64'), mod_ra, mod_dec, mod_lams, mod_rfreq)
 
 
 # ONLY CAN CLONE UVFITS
-# TODO - FIGURE OUT HOW TO WRITE FROM SCRATCH
 def export_uvfits_from_clone(vis, outfile, uvfits_clone):
     """Exports model visibilities to uvfits file
 
