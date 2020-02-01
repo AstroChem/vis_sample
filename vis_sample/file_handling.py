@@ -302,7 +302,7 @@ def export_ms_from_clone(vis, outfile, ms_clone, noise_inject=None):
     if noise_inject:
         nvis = vis.VV.shape[0]
         nchan = vis.VV.shape[1]
-        noise = np.random.normal(0., noise_inject*np.sqrt(nvis), (nvis, nchan)) + np.random.normal(0., noise_inject*np.sqrt(nvis), (nvis, nchan))*1.j
+        noise = np.random.normal(0., noise_inject/1000.*np.sqrt(nvis), (nvis, nchan)) + np.random.normal(0., noise_inject/1000.*np.sqrt(nvis), (nvis, nchan))*1.j
         vis.VV += noise
         
 
