@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup (
     name = 'vis_sample',
-    version = '0.3.2',
+    version = '0.3.3',
 
     # This package actually *is* zip-safe, but I've run into issues with
     # installing it as a Zip: in particular, the install sometimes fails with
