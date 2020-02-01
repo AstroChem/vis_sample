@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# Copyright 2014-2017 Ryan Loomis <rloomis@cfa.harvard.edu>, J. Huang, and I. Czekala.
+# Copyright 2014-2020 Ryan Loomis <rloomis@cfa.harvard.edu>, J. Huang, and I. Czekala.
 # Licensed under the MIT License.
 
 # I don't use the ez_setup module because it causes us to automatically build
@@ -9,7 +9,7 @@ from setuptools import setup
 
 setup (
     name = 'vis_sample',
-    version = '0.2.2',
+    version = '0.3.0',
 
     # This package actually *is* zip-safe, but I've run into issues with
     # installing it as a Zip: in particular, the install sometimes fails with
@@ -26,14 +26,14 @@ setup (
     # more stuff, but others don't need much of anything. But, it's pretty
     # much impossible to do science without Numpy.
     install_requires = [
-        'python >= 2.7.0',
-        'numpy >= 1.13.1',
-        'scipy >= 0.19.1',
-        'astropy >= 1.0.0'
+        'python >= 3.6.0',
+        'numpy >= 1.16.1',
+        'scipy >= 1.1.1',
+        'astropy >= 3.0.0'
     ],
 
     author = 'Ryan Loomis',
-    author_email = 'rloomis@cfa.harvard.edu',
+    author_email = 'rloomis@nrao.edu',
     description = 'Visibility sampler',
     license = 'MIT',
     keywords = 'astronomy science',
@@ -49,8 +49,8 @@ setup (
         'Intended Audience :: Science/Research',
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.6',
         'Topic :: Scientific/Engineering :: Astronomy',
     ],
 )
