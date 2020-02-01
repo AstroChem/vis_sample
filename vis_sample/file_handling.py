@@ -242,7 +242,7 @@ def import_model_radmc(src_distance, filename, mod_rfreq=None):
 
 
 # ONLY CAN CLONE UVFITS
-def export_uvfits_from_clone(vis, outfile, uvfits_clone):
+def export_uvfits_from_clone(vis, outfile, uvfits_clone, noise_inject=None):
     """Exports model visibilities to uvfits file
 
     Parameters
@@ -250,6 +250,7 @@ def export_uvfits_from_clone(vis, outfile, uvfits_clone):
     vis: Visibility object
     outfile: Name of file being written out to
     ms_clone: Input uvfits file being cloned
+    noise_inject: Amount of noise (if any) to inject into dataset
     """
     clone = pyfits.open(uvfits_clone)
     clone_data = clone[0].data
@@ -280,7 +281,7 @@ def export_uvfits_from_clone(vis, outfile, uvfits_clone):
 
 
 # ONLY CAN CLONE MS
-def export_ms_from_clone(vis, outfile, ms_clone):
+def export_ms_from_clone(vis, outfile, ms_clone, noise_inject=None):
     """Exports model visibilities to measurement set
 
     Parameters
@@ -288,6 +289,7 @@ def export_ms_from_clone(vis, outfile, ms_clone):
     vis: Visibility object
     outfile: Name of file being written out to
     ms_clone: Input measurement set being cloned
+    noise_inject: Amount of noise (if any) to inject into dataset
     """
     try:
         import casatools
@@ -295,6 +297,14 @@ def export_ms_from_clone(vis, outfile, ms_clone):
         print("casatools was not able to be imported, make sure all dependent packages are installed")
         print("try instructions at https://casa.nrao.edu/casadocs/casa-5.6.0/introduction/casa6-installation-and-usage")
         sys.exit(1)
+
+    # First inject noise if desired into the visibilities
+    if noise_inject:
+        nvis = vis.VV.shape[0]
+        nchan = vis.VV.shape[1]
+        noise = np.random.normal(0., noise_inject*np.sqrt(nvis), (nvis, nchan)) + np.random.normal(0., noise_inject*np.sqrt(nvis), (nvis, nchan))*1.j
+        vis.VV += noise
+        
 
     shutil.copytree(ms_clone, outfile)
 
