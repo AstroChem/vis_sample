@@ -1,9 +1,9 @@
 # Here we define all of the necessary functions to FFT the model image and phase shift visibilities
 import numpy as np
-from constants import *
+from vis_sample.constants import *
 from numpy.fft import fftfreq, rfftfreq, fftshift, fft2
-from gridding import *
-from classes import *
+from vis_sample.gridding import *
+from vis_sample.classes import *
 
 
 def transform(img):

@@ -1,6 +1,6 @@
 import numpy as np
-from gridding import *
-from constants import *
+from vis_sample.gridding import *
+from vis_sample.constants import *
 
 # SkyImage is a holder that has both RA and DEC increasing with array index
 # This convention is necessary for the FFT step

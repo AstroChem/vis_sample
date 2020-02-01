@@ -1,8 +1,8 @@
 import numpy as np
 import astropy.io.fits as pyfits
 import astropy.io.ascii as ascii
-from constants import *
-from transforms import *
+from vis_sample.constants import *
+from vis_sample.transforms import *
 import sys
 import shutil
 

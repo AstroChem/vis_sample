@@ -26,10 +26,9 @@ setup (
     # more stuff, but others don't need much of anything. But, it's pretty
     # much impossible to do science without Numpy.
     install_requires = [
-        'python >= 3.6.0',
-        'numpy >= 1.16.1',
-        'scipy >= 1.1.1',
-        'astropy >= 3.0.0'
+        'numpy',
+        'scipy',
+        'astropy'
     ],
 
     author = 'Ryan Loomis',

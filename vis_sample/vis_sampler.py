@@ -1,10 +1,10 @@
 import numpy as np
 import sys
-from gridding import *
-from classes import *
-from transforms import *
-from interpolation import interpolate_uv
-from file_handling import *
+from vis_sample.gridding import *
+from vis_sample.classes import *
+from vis_sample.transforms import *
+from vis_sample.interpolation import interpolate_uv
+from vis_sample.file_handling import *
 from scipy import ndimage
 import time
 

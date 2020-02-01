@@ -3,8 +3,8 @@
 # we estimate the gcf by precalculating the gcf for a dense grid (1000x image res) and
 # then use these gcf values (for a massive speed increase)
 import numpy as np
-from gridding import *
-from classes import *
+from vis_sample.gridding import *
+from vis_sample.classes import *
 from numpy.lib.stride_tricks import as_strided
 
 
